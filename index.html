@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex">
+<title>公共 テスト対策</title>
+<style>
+  :root { --main:#4a7c3a; --bg:#f4f7f1; --ok:#2e8b57; --ng:#d9534f; --text:#222; --card:#fff; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; font-family:-apple-system,"Hiragino Sans","Hiragino Kaku Gothic ProN",sans-serif; background:var(--bg); color:var(--text); font-size:18px; line-height:1.6; }
+  .wrap { max-width:760px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { color:var(--main); font-size:26px; margin:8px 0 4px; }
+  .sub { color:#666; font-size:14px; margin-bottom:20px; }
+  .card { background:var(--card); border-radius:14px; padding:20px; box-shadow:0 2px 8px rgba(0,0,0,.08); margin-bottom:16px; }
+  button { font:inherit; cursor:pointer; border:none; border-radius:12px; }
+  .menu button { display:block; width:100%; text-align:left; padding:16px 18px; margin:10px 0; background:var(--card); box-shadow:0 2px 6px rgba(0,0,0,.08); font-size:18px; }
+  .menu button small { display:block; color:#777; font-size:13px; }
+  .menu button.primary { background:var(--main); color:#fff; }
+  .menu button.primary small { color:#e0eedb; }
+  .menu h2 { font-size:16px; color:#555; margin:24px 0 4px; }
+  .top { display:flex; justify-content:space-between; align-items:center; font-size:14px; color:#666; margin-bottom:10px; }
+  .bar { height:8px; background:#ddd; border-radius:4px; overflow:hidden; margin-bottom:16px; }
+  .bar div { height:100%; background:var(--main); transition:width .3s; }
+  .tag { display:inline-block; font-size:12px; background:#e3eedd; color:var(--main); border-radius:6px; padding:2px 8px; margin-bottom:8px; }
+  .q { font-size:20px; font-weight:600; margin-bottom:16px; }
+  .choices button { display:block; width:100%; text-align:left; padding:14px 16px; margin:10px 0; background:#fff; border:2px solid #cfdcc8; font-size:18px; }
+  .choices.tf { display:flex; gap:12px; }
+  .choices.tf button { text-align:center; font-size:32px; font-weight:bold; padding:18px; }
+  .choices button.ok { background:#e2f5e9; border-color:var(--ok); }
+  .choices button.ng { background:#fbe3e2; border-color:var(--ng); }
+  .choices button:disabled { color:var(--text); opacity:1; }
+  .result { font-size:22px; font-weight:bold; margin:8px 0; }
+  .result.ok { color:var(--ok); } .result.ng { color:var(--ng); }
+  .exp { background:#fffbe6; border-left:4px solid #e6c200; padding:10px 14px; border-radius:6px; font-size:16px; }
+  .next { width:100%; padding:16px; background:var(--main); color:#fff; font-size:18px; margin-top:16px; }
+  .link { background:none; color:#666; text-decoration:underline; font-size:14px; padding:4px; }
+  .score { font-size:48px; font-weight:bold; color:var(--main); text-align:center; }
+  .review li { margin-bottom:10px; font-size:15px; }
+  .review b { color:var(--ok); }
+  input { font:inherit; font-size:28px; padding:12px; width:100%; text-align:center; letter-spacing:8px; border:2px solid #cfdcc8; border-radius:12px; }
+  .err { color:var(--ng); font-size:14px; height:20px; }
+  .stat { font-size:13px; color:#666; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script src="questions.js"></script>
+<script>
+const PW = "0764";
+const $app = document.getElementById("app");
+const store = {
+  get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+// 問題に固定IDを付ける（問題文で識別）
+const ALL = Q.map(([s, q, a, w, e]) => ({ id: q, s, q, a, w, e }));
+let quiz = null;
+
+const shuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const wrongSet = () => new Set(store.get("wrong", []));
+
+function login() {
+  $app.innerHTML = `
+    <h1>公共 テスト対策</h1>
+    <div class="sub">パスワードを入力してください</div>
+    <div class="card">
+      <input id="pw" type="password" inputmode="numeric" maxlength="4" autofocus>
+      <div class="err" id="err"></div>
+      <button class="next" id="go">はじめる</button>
+    </div>`;
+  const go = () => {
+    if (document.getElementById("pw").value === PW) { store.set("auth", true); menu(); }
+    else document.getElementById("err").textContent = "パスワードがちがいます";
+  };
+  document.getElementById("go").onclick = go;
+  document.getElementById("pw").onkeydown = e => { if (e.key === "Enter") go(); };
+}
+
+function menu() {
+  const w = wrongSet();
+  const best = store.get("best", {});
+  const secBtns = Object.entries(SECTIONS).map(([k, name]) => {
+    const n = ALL.filter(x => x.s == k).length;
+    const b = best[k] != null ? `／前回 ${best[k]}%` : "";
+    return `<button data-mode="sec" data-s="${k}">${name}<small>${n}問${b}</small></button>`;
+  }).join("");
+  $app.innerHTML = `
+    <h1>公共 テスト対策</h1>
+    <div class="sub">詳細公共 p150〜162 ／ 10/14 中間試験</div>
+    <div class="menu">
+      <button class="primary" data-mode="rand">ランダム20問<small>全範囲からランダムに出題</small></button>
+      <button data-mode="weak" ${w.size ? "" : "disabled style='opacity:.5'"}>苦手を復習<small>まちがえた問題だけ（${w.size}問）</small></button>
+      <h2>単元ごと</h2>
+      ${secBtns}
+      <h2>その他</h2>
+      <button data-mode="all">全問チャレンジ<small>全${ALL.length}問</small></button>
+    </div>
+    <p class="stat">※まちがえた問題は「苦手」に記録され、正解すると消えます。</p>
+    <button class="link" id="reset">苦手と記録をリセット</button>`;
+  $app.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => {
+    const m = b.dataset.mode;
+    let list, title, key = null;
+    if (m === "rand") { list = shuffle(ALL).slice(0, 20); title = "ランダム20問"; }
+    if (m === "all") { list = shuffle(ALL); title = "全問チャレンジ"; }
+    if (m === "weak") { list = shuffle(ALL.filter(x => w.has(x.id))); title = "苦手を復習"; }
+    if (m === "sec") { key = b.dataset.s; list = shuffle(ALL.filter(x => x.s == key)); title = SECTIONS[key]; }
+    if (list.length) start(list, title, key);
+  });
+  document.getElementById("reset").onclick = () => {
+    if (confirm("苦手と記録をリセットしますか？")) { store.set("wrong", []); store.set("best", {}); menu(); }
+  };
+}
+
+function start(list, title, key) {
+  quiz = { list, title, key, i: 0, correct: 0, missed: [] };
+  show();
+}
+
+function show() {
+  const { list, i, title } = quiz;
+  const item = list[i];
+  const tf = item.a === "○" || item.a === "×";
+  const choices = tf ? ["○", "×"] : shuffle([item.a, ...item.w]);
+  $app.innerHTML = `
+    <div class="top"><button class="link" id="quit">← メニュー</button><span>${esc(title)}</span><span>${i + 1} / ${list.length}</span></div>
+    <div class="bar"><div style="width:${i / list.length * 100}%"></div></div>
+    <div class="card">
+      <span class="tag">${SECTIONS[item.s].split("（")[0]}${tf ? "　○×問題" : ""}</span>
+      <div class="q">${esc(item.q)}</div>
+      <div class="choices ${tf ? "tf" : ""}">
+        ${choices.map(c => `<button>${esc(c)}</button>`).join("")}
+      </div>
+      <div id="fb"></div>
+    </div>`;
+  document.getElementById("quit").onclick = () => { if (confirm("メニューにもどりますか？")) menu(); };
+  const btns = $app.querySelectorAll(".choices button");
+  btns.forEach((b, idx) => b.onclick = () => answer(item, choices, idx, btns));
+}
+
+function answer(item, choices, idx, btns) {
+  const ok = choices[idx] === item.a;
+  const w = wrongSet();
+  btns.forEach((b, j) => {
+    b.disabled = true;
+    if (choices[j] === item.a) b.classList.add("ok");
+    else if (j === idx) b.classList.add("ng");
+  });
+  if (ok) { quiz.correct++; w.delete(item.id); }
+  else { quiz.missed.push(item); w.add(item.id); }
+  store.set("wrong", [...w]);
+  const last = quiz.i === quiz.list.length - 1;
+  document.getElementById("fb").innerHTML = `
+    <div class="result ${ok ? "ok" : "ng"}">${ok ? "⭕ 正解！" : "❌ ざんねん… 正解は「" + esc(item.a) + "」"}</div>
+    <div class="exp">${esc(item.e)}</div>
+    <button class="next" id="next">${last ? "結果を見る" : "次の問題へ →"}</button>`;
+  const nx = document.getElementById("next");
+  nx.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  nx.onclick = () => { quiz.i++; last ? result() : show(); };
+}
+
+function result() {
+  const { list, correct, missed, key } = quiz;
+  const pct = Math.round(correct / list.length * 100);
+  if (key) { const best = store.get("best", {}); best[key] = pct; store.set("best", best); }
+  const msg = pct === 100 ? "パーフェクト！🎉" : pct >= 80 ? "よくできました！" : pct >= 60 ? "あと少し！" : "苦手を復習しよう！";
+  $app.innerHTML = `
+    <h1>結果</h1>
+    <div class="card">
+      <div class="score">${correct} / ${list.length}</div>
+      <div style="text-align:center;font-size:20px">${pct}%　${msg}</div>
+    </div>
+    ${missed.length ? `<div class="card"><b>まちがえた問題</b><ul class="review">${missed.map(m => `<li>${esc(m.q)}<br>→ <b>${esc(m.a)}</b></li>`).join("")}</ul></div>` : ""}
+    <div class="menu">
+      ${missed.length ? `<button class="primary" id="retry">まちがえた問題だけもう一度</button>` : ""}
+      <button id="back">メニューへ</button>
+    </div>`;
+  document.getElementById("back").onclick = menu;
+  if (missed.length) document.getElementById("retry").onclick = () => start(shuffle(missed), "やり直し", null);
+  window.scrollTo(0, 0);
+}
+
+store.get("auth", false) ? menu() : login();
+</script>
+</body>
+</html>
