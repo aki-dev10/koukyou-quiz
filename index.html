@@ -99,6 +99,8 @@ function menu() {
       <button data-mode="weak" ${w.size ? "" : "disabled style='opacity:.5'"}>苦手を復習<small>まちがえた問題だけ（${w.size}問）</small></button>
       <h2>単元ごと</h2>
       ${secBtns}
+      <h2>設定</h2>
+      <button id="voice">🔊 問題の読み上げ：${store.get("voice", true) ? "ON" : "OFF"}<small>タップで切りかえ</small></button>
       <h2>その他</h2>
       <button data-mode="all">全問チャレンジ<small>全${ALL.length}問</small></button>
     </div>
@@ -113,6 +115,7 @@ function menu() {
     if (m === "sec") { key = b.dataset.s; list = shuffle(ALL.filter(x => x.s == key)); title = SECTIONS[key]; }
     if (list.length) start(list, title, key);
   });
+  document.getElementById("voice").onclick = () => { store.set("voice", !store.get("voice", true)); menu(); };
   document.getElementById("reset").onclick = () => {
     if (confirm("苦手と記録をリセットしますか？")) { store.set("wrong", []); store.set("best", {}); menu(); }
   };
@@ -123,13 +126,25 @@ function start(list, title, key) {
   show();
 }
 
+function speak(text) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  if (!store.get("voice", true)) return;
+  const u = new SpeechSynthesisUtterance(text.replace(/【.*?】/g, "").replace(/（\s*[A-Z]?\s*）/g, "、空欄、"));
+  u.lang = "ja-JP";
+  u.rate = 1.0;
+  const v = speechSynthesis.getVoices().find(v => v.lang.startsWith("ja"));
+  if (v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+
 function show() {
   const { list, i, title } = quiz;
   const item = list[i];
   const tf = item.a === "○" || item.a === "×";
   const choices = tf ? ["○", "×"] : shuffle([item.a, ...item.w]);
   $app.innerHTML = `
-    <div class="top"><button class="link" id="quit">← メニュー</button><span>${esc(title)}</span><span>${i + 1} / ${list.length}</span></div>
+    <div class="top"><button class="link" id="quit">← メニュー</button><span>${esc(title)}</span><span>${i + 1} / ${list.length}　<button class="link" id="say" title="読み上げ">🔊</button></span></div>
     <div class="bar"><div style="width:${i / list.length * 100}%"></div></div>
     <div class="card">
       <span class="tag">${SECTIONS[item.s].split("（")[0]}${tf ? "　○×問題" : ""}</span>
@@ -138,9 +153,11 @@ function show() {
         ${choices.map((c, j) => `<button>${tf ? "" : `<span class="no">${j + 1}</span>`}${esc(c)}</button>`).join("")}
       </div>
       <div id="fb"></div>
-      <div class="keys">キーボード：1〜4＝取り消し線 ／ Shift+1〜4・テンキー1〜4＝解答 ／ n＝次へ</div>
+      <div class="keys">キーボード：1〜4＝取り消し線 ／ Shift+1〜4・テンキー1〜4＝解答 ／ n＝次へ ／ r＝もう一度読み上げ</div>
     </div>`;
-  document.getElementById("quit").onclick = () => { if (confirm("メニューにもどりますか？")) menu(); };
+  document.getElementById("quit").onclick = () => { if (confirm("メニューにもどりますか？")) { speechSynthesis.cancel(); menu(); } };
+  document.getElementById("say").onclick = () => speak(item.q);
+  speak(item.q);
   const btns = $app.querySelectorAll(".choices button");
   btns.forEach((b, idx) => b.onclick = () => answer(item, choices, idx, btns));
   keyHandler = e => {
@@ -151,6 +168,8 @@ function show() {
       e.preventDefault();
       if (m[1] === "Numpad" || e.shiftKey) answer(item, choices, idx, btns);
       else btns[idx].classList.toggle("strike");
+    } else if (e.key === "r" || e.key === "R") {
+      e.preventDefault(); speak(item.q);
     } else if (e.key === "n" || e.key === "N") {
       const nx = document.getElementById("next");
       if (nx) { e.preventDefault(); nx.click(); }
