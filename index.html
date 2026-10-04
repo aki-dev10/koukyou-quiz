@@ -31,6 +31,10 @@
   .choices button.ok { background:#e2f5e9; border-color:var(--ok); }
   .choices button.ng { background:#fbe3e2; border-color:var(--ng); }
   .choices button:disabled { color:var(--text); opacity:1; }
+  .choices button.strike { text-decoration:line-through; color:#aaa; }
+  .choices button.strike:disabled { color:#aaa; }
+  .choices button .no { display:inline-block; min-width:1.6em; color:#999; font-size:14px; }
+  .keys { font-size:12px; color:#999; margin-top:12px; }
   .result { font-size:22px; font-weight:bold; margin:8px 0; }
   .result.ok { color:var(--ok); } .result.ng { color:var(--ng); }
   .exp { background:#fffbe6; border-left:4px solid #e6c200; padding:10px 14px; border-radius:6px; font-size:16px; }
@@ -131,13 +135,27 @@ function show() {
       <span class="tag">${SECTIONS[item.s].split("（")[0]}${tf ? "　○×問題" : ""}</span>
       <div class="q">${esc(item.q)}</div>
       <div class="choices ${tf ? "tf" : ""}">
-        ${choices.map(c => `<button>${esc(c)}</button>`).join("")}
+        ${choices.map((c, j) => `<button>${tf ? "" : `<span class="no">${j + 1}</span>`}${esc(c)}</button>`).join("")}
       </div>
       <div id="fb"></div>
+      <div class="keys">キーボード：1〜4＝取り消し線 ／ Shift+1〜4・テンキー1〜4＝解答 ／ n＝次へ</div>
     </div>`;
   document.getElementById("quit").onclick = () => { if (confirm("メニューにもどりますか？")) menu(); };
   const btns = $app.querySelectorAll(".choices button");
   btns.forEach((b, idx) => b.onclick = () => answer(item, choices, idx, btns));
+  keyHandler = e => {
+    const m = e.code.match(/^(Digit|Numpad)([1-4])$/);
+    if (m) {
+      const idx = +m[2] - 1;
+      if (idx >= btns.length || btns[idx].disabled) return;
+      e.preventDefault();
+      if (m[1] === "Numpad" || e.shiftKey) answer(item, choices, idx, btns);
+      else btns[idx].classList.toggle("strike");
+    } else if (e.key === "n" || e.key === "N") {
+      const nx = document.getElementById("next");
+      if (nx) { e.preventDefault(); nx.click(); }
+    }
+  };
 }
 
 function answer(item, choices, idx, btns) {
@@ -182,6 +200,11 @@ function result() {
   window.scrollTo(0, 0);
 }
 
+let keyHandler = null;
+document.addEventListener("keydown", e => {
+  if (e.isComposing || e.ctrlKey || e.metaKey || e.altKey || e.target.tagName === "INPUT") return;
+  if (keyHandler && document.querySelector(".choices")) keyHandler(e);
+});
 store.get("auth", false) ? menu() : login();
 </script>
 </body>
