@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="歴史演習">
+<title>歴史総合 中間テスト演習</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+[hidden]{display:none!important}
+.gate{max-width:360px;margin:12vh auto 0;display:flex;flex-direction:column;gap:12px}
+.gate input{font:inherit;font-size:1.4rem;letter-spacing:.3em;text-align:center;padding:12px;border-radius:10px;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink)}
+.gate .err{color:var(--ng);min-height:1.5em;font-size:.9rem}
+/* Layout: 左に設定レール、右に1問ずつのカード。プリントの薄緑の紙と、オレンジの書き込み（赤シートで消える色）がモチーフ */
+:root{
+  --paper:#eaf0ec; --sheet:#f8fbf8; --ink:#1d2b28; --muted:#5d6e69; --line:#c9d6d0;
+  --teal:#1f5f5b; --teal-soft:#d5e6e2; --orange:#e2571c; --orange-soft:#fbe4d8;
+  --ok:#1f7a4d; --ok-soft:#d8efe1; --ng:#b8322a; --ng-soft:#f6dcd9; --warn:#a86a00; --warn-soft:#f6ead0;
+  --redsheet:#c7362f;
+  --f-display:"Shippori Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141b1a; --sheet:#1c2624; --ink:#e3ebe8; --muted:#9aaba6; --line:#33433f;
+  --teal:#7cc4bc; --teal-soft:#21403c; --orange:#ff8a52; --orange-soft:#3d2519;
+  --ok:#6fd39c; --ok-soft:#1b3a2a; --ng:#ff8d84; --ng-soft:#42201d; --warn:#f0bf5a; --warn-soft:#3b2f15;
+  --redsheet:#a8302a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#141b1a; --sheet:#1c2624; --ink:#e3ebe8; --muted:#9aaba6; --line:#33433f;
+  --teal:#7cc4bc; --teal-soft:#21403c; --orange:#ff8a52; --orange-soft:#3d2519;
+  --ok:#6fd39c; --ok-soft:#1b3a2a; --ng:#ff8d84; --ng-soft:#42201d; --warn:#f0bf5a; --warn-soft:#3b2f15;
+  --redsheet:#a8302a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.75;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:20px 40px}
+header.top{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;margin-bottom:18px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.5rem,2.6vw,2rem);margin:0;letter-spacing:.02em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.9rem}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.grid{grid-template-columns:minmax(0,1fr)}}
+aside{display:flex;flex-direction:column;gap:18px;max-width:560px;width:100%;margin:0 auto;background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,28px)}
+aside .seg{background:var(--paper)}
+.modes button{padding:14px 16px;font-size:1.05rem}
+.modes button:hover{border-color:var(--teal);background:var(--teal-soft)}
+.back{font-weight:700;text-decoration:none;font-size:.95rem}
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.speak{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);color:var(--teal);font:inherit;font-size:.82rem;font-weight:700;padding:3px 10px;border-radius:999px;cursor:pointer}
+.speak svg{width:15px;height:15px;fill:currentColor}
+.speak:hover{border-color:var(--teal)}
+.group{display:flex;flex-direction:column;gap:6px}
+.label{font-size:.75rem;letter-spacing:.12em;color:var(--muted);font-weight:700}
+.seg{display:flex;flex-wrap:wrap;gap:4px;background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:4px}
+.seg button{flex:1 1 auto;border:0;background:transparent;color:var(--ink);font:inherit;font-size:.9rem;padding:7px 10px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--teal);color:var(--sheet);font-weight:700}
+.seg button:hover:not([aria-pressed="true"]){background:var(--teal-soft)}
+.modes{display:flex;flex-direction:column;gap:6px}
+.modes button{display:flex;justify-content:space-between;align-items:center;gap:8px;text-align:left;border:1px solid var(--line);background:var(--sheet);color:var(--ink);font:inherit;padding:10px 12px;border-radius:10px;cursor:pointer}
+.modes button .n{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.modes button[aria-pressed="true"]{border-color:var(--teal);box-shadow:inset 0 0 0 1px var(--teal);font-weight:700}
+.modes button small{display:block;font-weight:400;color:var(--muted);font-size:.78rem;line-height:1.4}
+select{font:inherit;font-size:.9rem;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);width:100%}
+.check{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--teal)}
+.weakbox{font-size:.85rem;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.linkbtn{border:0;background:none;color:var(--teal);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline;padding:0}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+
+main{min-width:0}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,3vw,32px);box-shadow:0 1px 0 var(--line)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.chip{font-size:.78rem;padding:2px 10px;border-radius:999px;background:var(--teal-soft);color:var(--teal);font-weight:700}
+.chip.weak{background:var(--orange-soft);color:var(--orange)}
+.chip.hint{background:var(--warn-soft);color:var(--warn)}
+.progress{margin-left:auto;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-bottom:18px}
+.bar i{display:block;height:100%;background:var(--teal);transition:width .25s}
+.sentence{font-size:clamp(1.05rem,1.6vw,1.22rem);line-height:2.1;max-width:44em}
+.blank{display:inline-block;min-width:5.5em;text-align:center;border-bottom:3px solid var(--orange);color:var(--orange);font-weight:700;padding:0 .3em;margin:0 .15em}
+.blank.done{border-color:var(--ok);color:var(--ok)}
+.blank.miss{border-color:var(--ng);color:var(--ng)}
+.filled{color:var(--muted);border-bottom:1px dotted var(--muted)}
+.question{font-family:var(--f-display);font-weight:600;font-size:clamp(1.15rem,1.8vw,1.35rem);line-height:1.8;margin:0;max-width:40em;text-wrap:pretty}
+.choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:22px}
+@media (max-width:560px){.choices{grid-template-columns:minmax(0,1fr)}}
+.choice{display:flex;gap:12px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink);font:inherit;font-size:1.05rem;padding:12px 14px;border-radius:10px;cursor:pointer;min-width:0}
+.choice:hover:not(:disabled){border-color:var(--teal);background:var(--teal-soft)}
+.choice .k{flex:none;width:1.7em;height:1.7em;display:grid;place-items:center;border-radius:6px;background:var(--paper);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.choice.right{border-color:var(--ok);background:var(--ok-soft)}
+.choice.wrong{border-color:var(--ng);background:var(--ng-soft)}
+.choice:disabled{cursor:default}
+.inputrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.inputrow input{flex:1 1 240px;min-width:0;font:inherit;font-size:1.15rem;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink)}
+.btn{font:inherit;font-weight:700;border-radius:10px;padding:11px 20px;cursor:pointer;border:1.5px solid var(--teal);background:var(--teal);color:var(--sheet)}
+.btn.ghost{background:transparent;color:var(--teal)}
+.btn.small{padding:7px 14px;font-size:.9rem}
+.feedback{margin-top:20px;padding:14px 16px;border-radius:10px;display:flex;flex-direction:column;gap:4px}
+.feedback.ok{background:var(--ok-soft)} .feedback.ng{background:var(--ng-soft)} .feedback.mid{background:var(--warn-soft)}
+.feedback strong{font-size:1.05rem}
+.feedback .ans{font-size:1.25rem;font-weight:700;color:var(--orange)}
+.feedback .rd{color:var(--muted);font-size:.9rem}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center}
+.kbd{font-size:.78rem;color:var(--muted)}
+.model{margin-top:20px;border-left:4px solid var(--orange);background:var(--orange-soft);padding:14px 18px;border-radius:0 10px 10px 0;line-height:1.95;max-width:46em}
+.model .lb{font-size:.75rem;letter-spacing:.12em;color:var(--orange);font-weight:700;display:block;margin-bottom:4px}
+.note{font-size:.85rem;color:var(--muted);margin-top:10px}
+.self{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.self button{font:inherit;border-radius:10px;padding:9px 16px;cursor:pointer;border:1.5px solid var(--line);background:var(--sheet);color:var(--ink)}
+.self .g{border-color:var(--ok);color:var(--ok)} .self .m{border-color:var(--warn);color:var(--warn)} .self .b{border-color:var(--ng);color:var(--ng)}
+
+.result h2{font-family:var(--f-display);font-size:1.6rem;margin:0 0 4px}
+.score{font-size:3rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--teal);line-height:1.2}
+.score span{font-size:1.2rem;color:var(--muted)}
+.misslist{list-style:none;padding:0;margin:16px 0 0;display:flex;flex-direction:column;gap:6px}
+.misslist li{display:flex;gap:12px;align-items:baseline;padding:8px 12px;background:var(--paper);border-radius:8px;flex-wrap:wrap}
+.misslist b{color:var(--orange);min-width:8em}
+.misslist .s{color:var(--muted);font-size:.85rem;flex:1 1 20em;min-width:0}
+
+/* 赤シート */
+.sheettools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.sec{margin-top:26px}
+.sec:first-of-type{margin-top:0}
+.sec h3{font-family:var(--f-display);font-size:1.15rem;margin:0 0 8px;color:var(--teal)}
+.sec h4{font-size:.8rem;letter-spacing:.12em;color:var(--muted);margin:0 0 10px}
+.para{margin:0 0 12px;line-height:2.2;max-width:46em}
+.rs{display:inline-flex;align-items:baseline;gap:.25em;border:0;font:inherit;cursor:pointer;padding:0 .4em;margin:0 .1em;border-radius:4px;background:var(--redsheet);color:transparent;min-width:4.5em;justify-content:center;line-height:1.6}
+.rs .no{color:#fff;font-size:.72em;font-weight:700;opacity:.9}
+.rs .tx{color:transparent}
+.rs.open{background:transparent;color:var(--orange);border-bottom:2px solid var(--orange);border-radius:0}
+.rs.open .tx{color:var(--orange);font-weight:700}
+.rs.open .no{color:var(--muted)}
+.rs.isweak:not(.open){box-shadow:0 0 0 2px var(--orange)}
+footer{margin-top:28px;font-size:.8rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="gate" hidden>
+  <div class="gate card">
+    <h1>歴史総合 中間テスト演習</h1>
+    <span class="sub">パスワードを入力してください</span>
+    <input id="pw" type="password" inputmode="numeric" maxlength="4" aria-label="パスワード">
+    <span class="err" id="pwErr"></span>
+    <button class="btn" id="pwGo">はじめる</button>
+  </div>
+</div>
+
+
+<div class="wrap" id="appWrap" hidden>
+  <header class="top">
+    <h1>歴史総合 中間テスト演習</h1>
+    <span class="sub">5. アジアのナショナリズム ／ 6. 大衆の政治参加</span>
+  </header>
+  <div class="grid">
+    <aside>
+      <div class="group">
+        <span class="label">範囲</span>
+        <select id="range" aria-label="範囲"></select>
+      </div>
+      <div class="group" id="methodGroup">
+        <span class="label">答え方（穴埋め・本文から）</span>
+        <div class="seg" id="method">
+          <button data-v="choice">4択</button><button data-v="input">手入力</button>
+        </div>
+      </div>
+      <div class="group" id="orderGroup">
+        <span class="label">出題順</span>
+        <div class="seg" id="order">
+          <button data-v="seq">プリント順</button><button data-v="rand">ランダム</button>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="tts"> 問題を音声で読み上げる</label>
+      <label class="check" id="weakGroup"><input type="checkbox" id="weakOnly"> 苦手だけ出題する</label>
+      <div class="weakbox"><span id="weakCount"></span><button class="linkbtn" id="weakReset">苦手をリセット</button></div>
+      <div id="resetConfirm" class="weakbox" hidden><span>本当にリセットしますか？</span><span><button class="linkbtn" id="resetYes">はい</button>　<button class="linkbtn" id="resetNo">やめる</button></span></div>
+      <div class="group">
+        <span class="label">モードを選んでスタート</span>
+        <div class="modes" id="modes"></div>
+      </div>
+    </aside>
+    <main id="main" hidden></main>
+  </div>
+  <footer><span>2026/10/11 19:12 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
+</div>
+
+<script>
+// ===== 穴埋めの答え =====  [答え, よみ, 分類, 別解[], 個別ダミー[]]
+const B = {
+5:{
+1:["朝鮮総督府","ちょうせんそうとくふ","org"],
+2:["民族自決","みんぞくじけつ","concept"],
+3:["三・一独立運動","さんいちどくりつうんどう","move"],
+4:["文化政治","ぶんかせいじ","concept"],
+5:["辛亥革命","しんがいかくめい","move"],
+6:["女性","じょせい","x",[],["労働者","農民","少数民族"]],
+7:["白話","はくわ","x",[],["文語","漢文","古文"]],
+8:["新文化運動","しんぶんかうんどう","move",["文学革命"]],
+9:["戦勝国","せんしょうこく","x",[],["敗戦国","中立国","保護国"]],
+10:["山東","さんとう","place"],
+11:["五・四運動","ごしうんどう","move"],
+12:["孫文","そんぶん","person"],
+13:["中国共産党","ちゅうごくきょうさんとう","org"],
+14:["紡績業","ぼうせきぎょう","ind"],
+15:["在華紡","ざいかぼう","x",[],["民族資本","租界","財閥"]],
+16:["綿糸","めんし","ind"],
+17:["綿花","めんか","ind"],
+18:["民族資本","みんぞくしほん","x",[],["在華紡","外国資本","財閥"]],
+19:["インド国民会議","いんどこくみんかいぎ","org"],
+20:["ベンガル分割令","べんがるぶんかつれい","law"],
+21:["国民会議派","こくみんかいぎは","org"],
+22:["英貨","えいか","x",[],["日貨","仏貨","外国語"]],
+23:["スワラージ","すわらーじ","x",["スワラジ"],["スワデーシ","カディ","サティヤーグラハ"]],
+24:["カルカッタ大会四大綱領","かるかったたいかいよんだいこうりょう","x",["カルカッタ大会4大綱領"],["ローラット法","十四カ条","二十一カ条の要求"]],
+25:["全インド＝ムスリム連盟","ぜんいんどむすりむれんめい","org",["全インドムスリム連盟"]],
+26:["ローラット法","ろーらっとほう","law"],
+27:["非暴力・不服従","ひぼうりょくふふくじゅう","x",[],["完全独立","民族自決","スワデーシ"]],
+28:["ネルー","ねるー","person"],
+29:["委任統治領","いにんとうちりょう","x",["委任統治"],["保護国","租借地","自治領"]],
+30:["ワフド党","わふどとう","org"],
+31:["エジプト王国","えじぷとおうこく","state"],
+32:["スエズ","すえず","place"],
+33:["セーヴル","せーゔる","law",["セーブル","セーヴル条約"]],
+34:["ケマル","けまる","person",["ムスタファ＝ケマル","ムスタファケマル","ケマル＝パシャ"]],
+35:["スルタン","するたん","x",[],["カリフ","シャー","ハーン"]],
+36:["トルコ共和国","とるこきょうわこく","state"],
+37:["トルコ民族主義","とるこみんぞくしゅぎ","concept"],
+38:["ガージャール","がーじゃーる","x",["カージャール"],["パフレヴィー","サファヴィー","ムガル"]],
+39:["パフレヴィー","ぱふれゔぃー","x",["パフレビー","パフラヴィー"],["ガージャール","サファヴィー","ムガル"]]
+},
+6:{
+1:["社会主義","しゃかいしゅぎ","concept"],
+2:["男性普通選挙","だんせいふつうせんきょ","x",[],["制限選挙","女性参政権","普通選挙"]],
+3:["女性参政権","じょせいさんせいけん","move"],
+4:["総力戦","そうりょくせん","x",[],["局地戦","帝国主義戦争","塹壕戦"]],
+5:["普通選挙","ふつうせんきょ","x",[],["制限選挙","男性普通選挙","間接選挙"]],
+6:["義務教育","ぎむきょういく","concept"],
+7:["徴兵","ちょうへい","x",[],["地租改正","華族","戸籍"]],
+8:["賠償金","ばいしょうきん","x",[],["領土","遼東半島","租借権"]],
+9:["日比谷焼き打ち","ひびややきうち","move",["日比谷焼打ち","日比谷焼打"]],
+10:["大正政変","たいしょうせいへん","move"],
+11:["憲政擁護","けんせいようご","move",["護憲"]],
+12:["吉野作造","よしのさくぞう","person"],
+13:["民本主義","みんぽんしゅぎ","concept"],
+14:["議会","ぎかい","x",[],["内閣","元老","軍部"]],
+15:["富山県","とやまけん","place",["富山"]],
+16:["米騒動","こめそうどう","move"],
+17:["寺内正毅","てらうちまさたけ","person"],
+18:["原敬","はらたかし","person"],
+19:["大正デモクラシー","たいしょうでもくらしー","concept"],
+20:["加藤高明","かとうたかあき","person"],
+21:["五・一五","ごいちご","x",["5・15","五一五"],["二・二六","大逆","日比谷焼き打ち"]],
+22:["憲政会","けんせいかい","org"],
+23:["女性","じょせい","x",[],["労働者","小作農","子ども"]],
+24:["大逆","たいぎゃく","x",[],["五・一五","二・二六","日比谷焼き打ち"]],
+25:["工業化","こうぎょうか","concept"],
+26:["ロシア革命","ろしあかくめい","move"],
+27:["労働運動","ろうどううんどう","move"],
+28:["日本共産党","にほんきょうさんとう","org"],
+29:["治安維持法","ちあんいじほう","law"],
+30:["青鞜社","せいとうしゃ","org"],
+31:["新婦人協会","しんふじんきょうかい","org"],
+32:["治安警察","ちあんけいさつ","x",[],["治安維持","集会条例","新聞紙"]],
+33:["1945","せんきゅうひゃくよんじゅうご","x",[],["1925","1946","1932"]],
+34:["全国水平社","ぜんこくすいへいしゃ","org"],
+35:["被差別部落","ひさべつぶらく","x",[],["小作農","下層労働者","女性"]],
+36:["部落解放","ぶらくかいほう","move"]
+}};
+const EXTRA = {
+  person:["犬養毅","桂太郎","袁世凱","蔣介石","市川房枝","平塚らいてう","ウィルソン","ガンディー","レザー＝シャー"],
+  org:["立憲政友会","中国国民党","革新倶楽部","友愛会","コミンテルン","国際連盟"],
+  move:["義和団事件","洋務運動","第2次護憲運動","スワデーシ運動","辛亥革命"],
+  concept:["帝国主義","自由主義","民族主義","富国強兵"],
+  law:["二十一カ条の要求","ヴェルサイユ","普通選挙法","ローザンヌ","バルフォア宣言"],
+  place:["遼東","台湾","満洲","青島","パナマ","大阪府"],
+  state:["イラク王国","サウジアラビア王国","ヨルダン王国","トルコ共和国"],
+  ind:["生糸","綿織物","製鉄業","茶"]
+};
+
+// ===== プリント本文 =====  [[n]] が括弧
+const SECS = [
+ {id:"5a",ch:5,name:"朝鮮・中国のナショナリズム",paras:[
+  "1910年の韓国併合により、日本は（[[1]]）を設置して、植民地となった朝鮮を統治した。1919年3月1日、ウィルソン大統領による（[[2]]）の考えに影響を受けた朝鮮の宗教指導者たちが独立の宣言を出すと、民衆の間でも運動が拡大した（＝[[3]]）。総督府はこの運動を鎮圧したが、その後は武断的な統治を緩和して、一定の言論活動を認めるようになった（＝[[4]]）。",
+  "（[[5]]）後の中国では、儒学を批判して（[[6]]）の権利を主張したり、話し言葉に近い文体（＝[[7]]）での思想表現を試みたりする、文化を刷新しようとする（[[8]]）がおこった。",
+  "第一次世界大戦の（[[9]]）となった中国は、日本の二十一カ条の要求によって締結された条約の無効と、敗戦国のドイツが所有していた（[[10]]）権益の返還を求めた。しかしその期待は実現されない見込みとなったため、反発した北京の学生たちは、1919年に（[[11]]）をおこした。こうした状況下で、（[[12]]）が中国国民党を、ロシア革命に影響を受けた知識人が（[[13]]）を創立した。",
+  "この時期の上海では（[[14]]）がさかんとなり、中国系資本だけでなく、日本資本による工場も設けられ（＝[[15]]）、1920年代後半には中国の機械製（[[16]]）の輸出が輸入を上まわるまでに至った。"]},
+ {id:"5b",ch:5,name:"インドのナショナリズム",paras:[
+  "インドでは、アメリカの南北戦争によりインド（[[17]]）の需要が高まると、その取引で利益を得たインド（[[18]]）が紡績業をおこすなど、経済発展がみられた。同時に民族的自覚も高まり、1885年にイギリスにより（[[19]]）が開催された。",
+  "しかし、1905年にイギリスが（[[20]]）を公布したことから、（[[21]]）は反英意識を強め、翌年には（[[22]]）排斥・スワデーシ・（[[23]]）・民族教育を掲げた（＝[[24]]）。これに対しイギリスは、親英的な（[[25]]）の結成を支援したり、ベンガル分割令を取り消したりしたが、民族運動をおさえることはできず、1919年には（[[26]]）を制定して抑圧しようとした。",
+  "イギリスの抑圧に対抗し、国民会議派のガンディーが訴えた（[[27]]）運動や、（[[28]]）による完全独立の主張が展開された。"]},
+ {id:"5c",ch:5,name:"西アジア諸地域のナショナリズム",paras:[
+  "イギリスによるアラブ民族主義の鼓舞を受けたオスマン帝国領のアラブ人は、戦後の英・仏による（[[29]]）化に反発し、イラク王国などを成立させた。また、このときイギリスの保護国となったエジプトでは、（[[30]]）を中心に独立運動がおこり、1922年に（[[31]]）が成立したが、（[[32]]）運河はイギリスの管下にあった。",
+  "第一次世界大戦で敗戦国となったオスマン帝国領内のトルコ人は、（[[33]]）条約による領土分割の危機に直面した。こうしたなか、アンカラに政権をたてた（[[34]]）が、1922年に（[[35]]）制の廃止を宣言し、オスマン帝国が滅亡した。1923年には（[[36]]）が成立し、初代大統領に就任した（[[34]]）は、西欧化の推進と教育による（[[37]]）の強化をはかった。",
+  "第一次世界大戦中に中立を宣言したものの、諸外国に蹂躙された（[[38]]）朝のイランでは、専制政治への国民の不満が高まり、レザー＝シャーにより（[[39]]）朝が樹立され、近代化・世俗化がおこった。1935年には国名をペルシアからイランに変更し、イラン民族主義が鼓舞されたが、石油の利権はイギリスの政府と資本に握られたままであった。"]},
+ {id:"6a",ch:6,name:"欧米諸国における参政権の拡大",paras:[
+  "19世紀半ば以降、欧米諸国では、工業化の進展とともに労働運動や（[[1]]）運動が活発になった。また男性の参政権が拡大され（[[2]]）が実現した。女性の社会進出が始まると、1904年に国際女性参政権同盟が成立するなど、（[[3]]）運動も大きく盛り上がった。",
+  "（[[4]]）となった第一次世界大戦では、軍隊に動員された男性にかわって、女性が軍需産業などに動員された。大戦後、英・独・米では女性に参政権が付与され、性別を問わない平等な（[[5]]）が実現した。"]},
+ {id:"6b",ch:6,name:"日本の大衆政治運動と男性普通選挙",paras:[
+  "20世紀初頭の日本では、工業化の進展や（[[6]]）の普及、（[[7]]）制などを背景にして、大衆によるデモや暴動が都市部を中心にたびたびおきた。",
+  "日露戦争の講和に際して（[[8]]）が得られないことへの不満から、大臣官邸や政府系の新聞社、警察署などが焼き打ちされた（[[9]]）事件や、はじめて大衆運動により内閣が倒れる（[[10]]）の原因となった（[[11]]）運動［第1次護憲運動］など、デモや暴動があいついだ。その中心は、選挙権をもたない下層の男性労働者だった。",
+  "このような状況を受けて、政治学者の（[[12]]）は1916年に、民衆のために政治をおこなう「（[[13]]）」をとなえ、（[[14]]）中心の政治を確立するよう訴えた。",
+  "1918年には、米価の高騰に対して（[[15]]）の女性たちが値上げ阻止の運動をおこしたことが広まり、全国各地で労働者が米穀商などを襲撃する（[[16]]）がおこった。（[[17]]）内閣は退陣し、立憲政友会総裁の（[[18]]）が衆議院議員としてはじめて首相に選ばれた。",
+  "大衆が政治への影響力を増すなかで、参政権の拡大が課題となった［＝（[[19]]）］。原内閣のもとでは男性普通選挙の実現を求めるデモが多発し、選挙人資格が直接国税10円以上から3円以上に引き下げられた。",
+  "1924年には、衆議院の憲政会・立憲政友会・革新倶楽部の各政党が護憲三派を結成し、第1次（[[20]]）内閣を組織すると、男性普通選挙を実現させた。",
+  "加藤内閣以後、1932年の（[[21]]）事件による犬養毅内閣の崩壊まで、政党内閣は約8年間続き、立憲政友会と（[[22]]）［のち立憲民政党］の二大政党が交代で政権を担当した。"]},
+ {id:"6c",ch:6,name:"日本の社会運動",paras:[
+  "この頃の日本では、政治運動と同時に様々な社会運動がおこった。運動では、当時の日本社会における労働者の過酷な労働条件、農村における小作農の不利な立場、家父長的な家制度のもとでの（[[23]]）に対する抑圧、封建的なきびしい差別などを変えることが求められた。",
+  "日本の労働運動や社会主義運動は19世紀末に始まるが、1910年に起こった（[[24]]）事件以降、政府のきびしい取締りにあい低迷した。しかし、第一次世界大戦中に（[[25]]）の進展で労働者が増加したことに加え、（[[26]]）の影響を受け、（[[27]]）がさかんになった。",
+  "社会主義運動も復活し、1922年にはコミンテルンの指導の下で（[[28]]）がひそかに結成された。政府は労働者の保護などの社会政策をおこなう一方、1925年に（[[29]]）を制定して、天皇制の廃止や私有財産制度の否認を目的とする結社を取り締まった。",
+  "平塚らいてうを中心に結成された（[[30]]）は、日本の女性運動の出発点となった。平塚はさらに、市川房枝らと（[[31]]）を結成した。また女性の政治集会への参加を禁じた（[[32]]）法の条文の廃止を求め、1922年に実現した。しかし、女性の参政権は第二次世界大戦後の（[[33]]）年まで実現しなかった。",
+  "1922年創立の（[[34]]）は、身分制の廃止以後もきびしい差別や偏見に苦しむ（[[35]]）の人々の解放をめざし、人間としての誇りと自由・平等を訴える（[[36]]）運動を展開した。"]}
+];
+
+// ===== 本文から（年号・人物など） =====  [セクション, 問題, 答え, ダミー3, 別解]
+const T = [
+ ["5a","日本が韓国併合をおこなったのは何年？","1910年",["1905年","1919年","1895年"]],
+ ["5a","朝鮮で独立の宣言が出され、三・一独立運動が始まったのは何年何月何日？","1919年3月1日",["1910年8月29日","1919年5月4日","1918年11月11日"]],
+ ["5a","民族自決の考えをとなえたアメリカ大統領は？","ウィルソン",["セオドア＝ローズヴェルト","リンカン","フランクリン＝ローズヴェルト"]],
+ ["5a","中国の新文化運動で批判された学問は？","儒学",["仏教","蘭学","国学"]],
+ ["5a","中国が無効を求めた条約は、日本の何によって締結されたもの？","二十一カ条の要求",["十四カ条","ポーツマス条約","下関条約"]],
+ ["5a","五・四運動（1919年）をおこしたのは、どこの学生たち？","北京",["上海","南京","広州"]],
+ ["5a","孫文が創立した政党は？","中国国民党",["中国共産党","中国同盟会","国民会議派"]],
+ ["5a","紡績業がさかんになり、在華紡が設けられた都市は？","上海",["北京","天津","香港"]],
+ ["5b","インド綿花の需要が高まるきっかけとなった、アメリカの戦争は？","南北戦争",["独立戦争","米西戦争","第一次世界大戦"]],
+ ["5b","インド国民会議が開催されたのは何年？","1885年",["1905年","1906年","1919年"]],
+ ["5b","イギリスがベンガル分割令を公布したのは何年？","1905年",["1885年","1906年","1919年"]],
+ ["5b","カルカッタ大会の四大綱領で、英貨排斥・スワラージ・民族教育と並ぶもう1つは？","スワデーシ",["非暴力","完全独立","カディ"]],
+ ["5b","ローラット法が制定されたのは何年？","1919年",["1905年","1911年","1922年"]],
+ ["5b","非暴力・不服従運動を訴えた国民会議派の指導者は？","ガンディー",["ネルー","ジンナー","ティラク"]],
+ ["5c","英・仏の委任統治化に反発したアラブ人が成立させた国は（プリントの例）？","イラク王国",["エジプト王国","トルコ共和国","イラン"]],
+ ["5c","エジプト王国が成立したのは何年？","1922年",["1919年","1923年","1935年"]],
+ ["5c","ケマルが政権をたてた都市は？","アンカラ",["イスタンブル","カイロ","テヘラン"]],
+ ["5c","トルコ共和国が成立したのは何年？","1923年",["1922年","1919年","1935年"]],
+ ["5c","パフレヴィー朝を樹立した人物は？","レザー＝シャー",["ケマル","ガージャール","フセイン"]],
+ ["5c","イランが国名をペルシアからイランに変更したのは何年？","1935年",["1923年","1925年","1945年"]],
+ ["5c","イランの石油の利権を握っていたのはどこの国の政府と資本？","イギリス",["フランス","ロシア","アメリカ"]],
+ ["6a","国際女性参政権同盟が成立したのは何年？","1904年",["1914年","1919年","1889年"]],
+ ["6a","第一次世界大戦後、女性に参政権が付与された国としてプリントにあげられている3か国は？","英・独・米",["英・仏・米","日・独・米","仏・独・伊"]],
+ ["6b","日比谷焼き打ち事件のきっかけとなった講和は、何という戦争の講和？","日露戦争",["日清戦争","第一次世界大戦","戊辰戦争"]],
+ ["6b","吉野作造が民本主義をとなえたのは何年？","1916年",["1918年","1912年","1925年"]],
+ ["6b","米騒動がおこったのは何年？","1918年",["1916年","1920年","1925年"]],
+ ["6b","原敬は何という政党の総裁？","立憲政友会",["憲政会","立憲民政党","革新倶楽部"]],
+ ["6b","原内閣のもとで、選挙人資格（直接国税）は何円以上に引き下げられた？","3円以上",["10円以上","15円以上","制限なし"]],
+ ["6b","1924年に護憲三派を結成した3つの政党は？","憲政会・立憲政友会・革新倶楽部",["憲政会・立憲民政党・社会民衆党","立憲政友会・立憲改進党・自由党","憲政会・立憲政友会・日本共産党"]],
+ ["6b","日本で男性普通選挙が実現したのは何年？（アプローチ②）","1925年",["1918年","1928年","1945年"]],
+ ["6b","五・一五事件で崩壊した内閣は？","犬養毅内閣",["加藤高明内閣","原敬内閣","寺内正毅内閣"]],
+ ["6b","五・一五事件がおきたのは何年？","1932年",["1925年","1936年","1918年"]],
+ ["6b","加藤内閣以後、政党内閣は約何年間続いた？","約8年間",["約4年間","約12年間","約20年間"]],
+ ["6b","憲政会はのちに何という政党になった？","立憲民政党",["立憲政友会","革新倶楽部","社会民衆党"]],
+ ["6c","大逆事件がおこったのは何年？","1910年",["1905年","1918年","1922年"]],
+ ["6c","日本共産党の結成を指導した組織は？","コミンテルン",["国際連盟","青鞜社","国民会議派"]],
+ ["6c","治安維持法が制定されたのは何年？","1925年",["1918年","1922年","1945年"]],
+ ["6c","青鞜社の中心となった人物は？","平塚らいてう",["市川房枝","与謝野晶子","津田梅子"]],
+ ["6c","平塚らいてうと新婦人協会を結成した人物は？","市川房枝",["与謝野晶子","樋口一葉","津田梅子"]],
+ ["6c","「元始、女性は実に太陽であった」と呼びかけた人物は？","平塚らいてう",["市川房枝","与謝野晶子","樋口一葉"]],
+ ["6c","治安警察法の条文廃止（女性の政治集会参加）が実現したのは何年？","1922年",["1925年","1945年","1918年"]],
+ ["6c","全国水平社が創立されたのは何年？","1922年",["1910年","1925年","1918年"]]
+];
+
+// ===== 記述（おまけ）=====
+const E = [
+ ["5a","Q1","③の資料より、「新しい考え」とは何だろうか。","アメリカ合衆国大統領ウィルソンの「十四カ条」で触れられた民族自決。"],
+ ["5a","Q2","③の資料より、イギリス外相は、日本による弾圧をどのように見ているのだろうか。","朝鮮の人々の平和的なデモを、憲兵や軍などで残忍に弾圧したとみている。"],
+ ["5a","Q3","⑤の資料より、「正義」・「人道」・「公理」として考えられているのは、何だろうか。","アメリカのウィルソン大統領が主張した新しい国際秩序の理想は中国でも知られていた。それは、権力ではなく正義にもとづく国際政治の構想だった。"],
+ ["5a","Q4","五・四運動での主張と三・一独立運動との違いはどこにあるのだろうか。","五・四運動は、中国は第一次世界大戦の戦勝国として、国際正義にもとづく応分の地位を得るべき事を求め、とくに旧ドイツ領の青島の権益を日本がおさえていることを批判したのに対し、三・一独立運動は朝鮮という国家の独立そのものを求めた。"],
+ ["5a","アプローチ①","朝鮮半島と中国のナショナリズムのあり方には、どのような違いがあるのだろうか。","日本の植民地支配下だった朝鮮半島では、独立を求める形でナショナリズムが高まった（三・一独立運動）。中国では、第一次世界大戦の戦勝国となったにもかかわらず、旧ドイツ権益が日本の手に渡ったことへの不満が強まり、強い態度での外交交渉を求める世論が高まった。"],
+ ["5b","Q5","①から②へのガンディーの服装の変化は、何を意味しているのだろうか。","①の洋服姿はイギリスの文化を身に着けた法律家としての立場を示していたが、②の手織りの布（カディ）を腰に巻く姿は、イギリスの植民地支配とその根底にある近代文明を否定し、インド社会の改革と復興を、身近な実践から民衆とともにおこなっていこうというガンディーの意識を示している。"],
+ ["5b","Q6","②でガンディーが糸車を回しているのは、何のためだろうか。","植民地化し、インドを経済的従属地としたイギリスへの抵抗の意思をみせるスワデーシ（国産品愛用）の原理を浸透させ、インドの伝統にもとづいた産業の復興を主張するため。"],
+ ["5b","Q7","⑨の資料より、ガンディーは日本をどのように見ているのだろうか。","日本もイギリスと同じく、暴力や物質的豊かさなどの近代文明による富強の独立国であるとし、インドの進む道ではないとしている。"],
+ ["5b","Q8","ガンディーのめざした民族運動はどのようなものだったのだろうか。","非暴力によりイギリス支配への不服従を説いた。民衆の身近なところからイギリス支配の不当性を訴え、民衆に広く受け入れられた民族運動であった。"],
+ ["5b","アプローチ②","中国やインドのナショナリズムの高まりの背景には、何があったのだろうか。","第一次世界大戦後の扱いに対する不満や、国内における紡績業を中心とした民族資本の成長などがみられた。"],
+ ["5c","Q9","⑬・⑭の書簡での約束や⑮の秘密協定の内容とのあいだには、どのような矛盾があるのだろうか。","アラブ人に中東地域での独立を約束（フセイン・マクマホン協定）しながら、一方でアラブ人も住むパレスチナにおけるユダヤ人国家の樹立をユダヤ人にも承認（バルフォア宣言）しているうえ、中東地域におけるフランス・イギリスの分割案を含む秘密協定（サイクス・ピコ協定）を結んでおり、3つの協定がそれぞれ矛盾をはらんでいる。"],
+ ["5c","Q10","この地域では、第一次世界大戦後、どのような戦後処理がなされたのだろうか。","フランス・イギリスの委任統治領となったが、アラブ人の反発もあり、のちにイラク王国などが成立した。"],
+ ["5c","アプローチ③","インドと西アジアのナショナリズムは、どのように展開したのだろうか。","インドでは、非暴力・不服従運動など独立運動が展開された。西アジアでは、エジプト・イラク王国・トルコ共和国などが独立し、イランではパフレヴィー朝が成立した。しかし、スエズ運河（エジプト）や石油（イラン）などの経済利権はイギリスに握られていた。"],
+ ["6a","Q1","②・③の写真は何が異なるのだろうか。","ドイツではすでに女性も選挙に参加しているが、日本では男性普通選挙にとどまっていたため、投票所に並ぶ有権者は男性だけである。"],
+ ["6a","Q2","ドイツでは、1919年にはじめて②のような選挙が行われた。その背景は何だろうか。","第一次世界大戦が国民の最大限の協力を求めた総力戦となり、女性の社会進出が進んだため、国家（戦争）への協力や納税に対して参政権を求める動きが広まった。"],
+ ["6a","Q3","④の資料より、なぜ第一次世界大戦中には、それまでの戦争と異なり、女性の労働が大規模に行われたのだろうか。","男性が兵士として戦場に送られ、空白となった業務に女性が動員されたり、進出したりしたため。"],
+ ["6a","Q4","⑤の資料より、なぜそのような状況が生じたのだろうか。","女性に参政権が与えられたとはいえ、年齢に差をもうけるという形で差別が維持されたため、女性たちは男性との平等を求めた。"],
+ ["6a","アプローチ①","欧米諸国での政治参加の拡大は、社会がどのように変化するなかで進んだのだろうか。","19世紀半ばから工業化の中で労働運動が盛んになるなか、男性の参政権が拡大し、また女性の社会進出も始まって男女平等の参政権を求める運動がおこった。第一次世界大戦で女性が軍需産業などに動員されると、女性の発言力が強まり、性別を問わない普通選挙が広まった。"],
+ ["6b","Q5","⑥の資料より、日本の義務教育での就学率は、どのように変化したのだろうか。男女間でどのような違いがあったのだろうか。","就学率は1880年代半ばまで伸び悩んだが、義務教育の導入後に次第に向上し、1890年代後半から急進した。女子の就学率は一貫して男子より低かったが、1900年に義務教育の授業料が無償化されるなか、1900年代後半にはほとんどの子供が小学校に一旦は通うようになった。"],
+ ["6b","Q6","学校教育に対する人々の考え方は、どのように変わったのだろうか。また、それはなぜだろうか。","明治時代の初め、義務教育に対する理解は低く、通学（就学）よりも労働や家事が優先された。義務教育の授業料の無償化に加えて、産業革命により工業化が進むと、知識や技術、学歴を必要とする新たな職業が生まれ、教育を受け（させ）ないことがその後の人生において不利になるという意識が広がった。義務教育の就学率は向上し、立身出世のために中学校（男子）・高等女学校（女子）などに進む者や、都市部では高額でも私立学校を選ぶ者も増えた。"],
+ ["6b","Q7","①に見られる状況は、どのような点でこれまでの日本の政治とは異なっていたのだろうか。","大衆が政治に関心を持ち、初めて大衆運動が内閣を倒した点。従来も衆議院議員は国民から選挙で選ばれたが、政治は内閣や議会、元老のあいだでおこなわれ、議員は一握りの有権者から選ばれた。しかし①では有権者に限らず、桂内閣を批判する人々が多数集まり、議会（衆議院）を取り囲んだ。"],
+ ["6b","Q8","このような新しい状況が生じた背景には、社会のどのような変化があったのだろうか。","工業化の進展や義務教育の普及、徴兵制に基づく従軍などにより、制限選挙の下で選挙権がなかった庶民も、政治への関心や不満をいだくようになった。"],
+ ["6b","Q9","⑨の資料より、暴動の鎮圧にあたっているのは、どのような人々だろうか。","警官（絵では火を足で消す白い制服）や軍人（憲兵。右端で軍服を着て一部は馬に乗っている）。憲兵は軍内部の取り締まりのための警官だが、このような治安維持にも用いられた。"],
+ ["6b","Q10","⑩の資料より、なぜ寺内内閣は、新聞に米騒動の記事の掲載を禁止したのだろうか。","日本でのラジオ放送は1925年からなので、1918年の米騒動発生時のマスメディアの中心は新聞であった。義務教育の普及もあり部数を伸ばしていた新聞の影響力は大きく、政府は米騒動の全国への拡大や激化をくいとめるため掲載を禁止した。"],
+ ["6b","Q11","⑪の資料では、選挙権を求める理由として、どのようなことがあげられているだろうか。","労働者や農民は社会にとって必要な存在なのに選挙権がないこと、徴兵されて日清戦争や日露戦争に従軍した人々が選挙権を持っていないこと、デモクラシーという考え方があること。"],
+ ["6b","Q12","⑪の歌が作られた背景には、どのような社会の変化があったのだろうか。","義務教育の普及や、徴兵制にもとづく日清・日露戦争への従軍、工業化にともなう労働の広まり、デモクラシー思想の広まり、メディアの大衆化などにより、職業や貧富の差によらず人々は平等な権利を持つという考え方が社会に広まった。"],
+ ["6b","Q13","⑫の資料より、なぜ、第一次世界大戦後に参政権が拡大したのだろうか。","総力戦となったため労働者の発言力が強まり、従来制限選挙だったイギリスでも男性普通選挙が実現した。欧米諸国で軍需産業に動員された女性も発言力が強まり、戦前から女性運動で求めていた参政権の獲得が実現した。日本でも第一次世界大戦中の工業化やロシア革命の影響を受けながら普通選挙運動が盛り上がった。"],
+ ["6b","Q14","⑬の資料より、日本における参政権の拡大は、世界的にみるとどのような状況だったのだろうか。性別に注目してみよう。","男性普通選挙は、19世紀にはフランスやアメリカ、ドイツで工業化や民主化を背景に実現し、第一次世界大戦中には革命下のロシアや総力戦を経験したイギリスで実現した。日本では第一次世界大戦後、工業化や大衆化を背景に実現した。女性普通選挙はまず革命下のロシアで男性普通選挙とともに実現し、女性が軍需産業に動員された第一次世界大戦後にはドイツ・アメリカ・イギリスで実現した。日本とフランスでは第二次世界大戦を経て実現した。インド・中国では第二次世界大戦後に、男女ともに普通選挙が実現した。",true],
+ ["6b","アプローチ②","1925年に日本で男性普通選挙が実現した背景には、どのような社会の変化や世界情勢があったのだろうか。","義務教育の普及や徴兵制、メディアの大衆化などにより庶民にまで政治への関心や不満が生まれ、大衆運動が政治を動かすようになった。デモクラシー思想の普及もあって、大戦後に欧米諸国で労働者や女性の発言力が増し、性別を問わない普通選挙が広まったことや、ロシア革命の衝撃なども大衆運動や社会運動に力を与え、政府や議会に参政権拡大の必要を認識させた。"],
+ ["6c","Q15","⑭の資料より、「元始、女性は実に太陽であった」という言葉で、平塚は日本の女性たちに何を呼びかけたのだろうか。","「真正の人」であるはずの女性が「他の光」つまり男性に従い、妻や母という役割に縛られた形でしか生きられずにいると指摘し、妻や母になることだけが女性の自己実現ではないと呼びかけた。"],
+ ["6c","アプローチ③","社会運動に参加した人々は、社会の何を変えようとしたのだろうか。","資本主義のもとで、労働者の過酷な労働環境の改善、農村における小作農の不利な立場の改善、家父長的な家制度のもとで抑圧されていた女性の解放、封建的な差別からの解放と自由・平等などを求めた。"]
+];
+
+// ===== 問題データを組み立て =====
+const secById = Object.fromEntries(SECS.map(s=>[s.id,s]));
+const blankItems = []; // {id, ch, n, sec, sentence}
+SECS.forEach(s=>{
+  s.paras.forEach(p=>{
+    const sentences = p.match(/[^。]+。?/g) || [p];
+    sentences.forEach(st=>{
+      const re=/\[\[(\d+)\]\]/g; let m;
+      while((m=re.exec(st))){
+        const n=+m[1]; const id=`b${s.ch}-${n}`;
+        if(!blankItems.find(b=>b.id===id)) blankItems.push({id,ch:s.ch,n,sec:s.id,sentence:st});
+      }
+    });
+  });
+});
+const textItems = T.map((t,i)=>({id:"t"+i,ch:+t[0][0],sec:t[0],q:t[1],a:t[2],d:t[3]}));
+const essayItems = E.map((e,i)=>({id:`e${e[0][0]}-${e[1]}`,ch:+e[0][0],sec:e[0],label:e[1],q:e[2],a:e[3],flag:!!e[4]}));
+
+const getB = (ch,n)=>B[ch][n];
+const norm = s => (s||"").normalize("NFKC").replace(/[\s・･=＝\-‐ー－（）()「」、,.。年]/g,"").replace(/[ァ-ン]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).toLowerCase();
+// ※ ー も除去するので「スワラージ」「スワラジ」は同じ扱い
+
+// ===== 保存（苦手） =====
+let weak = {};
+try{ weak = JSON.parse(localStorage.getItem("rekishi_weak")||"{}")||{}; }catch(e){ weak={}; }
+let settings = {mode:"blank",range:"all",method:"choice",order:"seq",weakOnly:false,tts:true};
+try{ Object.assign(settings, JSON.parse(localStorage.getItem("rekishi_settings")||"{}")); }catch(e){}
+const save = ()=>{ try{ localStorage.setItem("rekishi_weak",JSON.stringify(weak)); localStorage.setItem("rekishi_settings",JSON.stringify(settings)); }catch(e){} };
+const markWeak = (id,bad)=>{ if(bad){ weak[id]=(weak[id]||0)+1; } else if(weak[id]){ weak[id]--; if(weak[id]<=0) delete weak[id]; } save(); renderSide(); };
+
+// ===== サイドバー =====
+const MODES = [
+  {v:"blank",t:"穴埋め（括弧）",s:"プリントの（ ）から出題",n:()=>blankItems.length},
+  {v:"sheet",t:"赤シート",s:"本文を読んでタップでめくる",n:()=>blankItems.length},
+  {v:"text",t:"本文から",s:"年号・人物などの一問一答",n:()=>textItems.length},
+  {v:"essay",t:"記述（おまけ）",s:"Q・アプローチの模範解答",n:()=>essayItems.length}
+];
+const $ = s=>document.querySelector(s);
+function renderSide(){
+  $("#modes").innerHTML = MODES.map(m=>`<button data-v="${m.v}" aria-pressed="${settings.mode===m.v}"><span>${m.t}<small>${m.s}</small></span><span class="n">${m.n()}問</span></button>`).join("");
+  $("#modes").querySelectorAll("button").forEach(b=>b.onclick=()=>play(b.dataset.v));
+  const opts = [["all","全範囲"],["5","5. アジアのナショナリズム（全部）"],...SECS.filter(s=>s.ch===5).map(s=>[s.id,"　"+s.name]),["6","6. 大衆の政治参加（全部）"],...SECS.filter(s=>s.ch===6).map(s=>[s.id,"　"+s.name])];
+  $("#range").innerHTML = opts.map(o=>`<option value="${o[0]}" ${settings.range===o[0]?"selected":""}>${o[1]}</option>`).join("");
+  ["method","order"].forEach(k=>$("#"+k).querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",settings[k]===b.dataset.v)));
+  $("#weakOnly").checked = settings.weakOnly;
+  $("#tts").checked = settings.tts;
+  const wc = Object.keys(weak).length;
+  $("#weakCount").textContent = `苦手に登録：${wc}問`;
+}
+$("#range").onchange=e=>{settings.range=e.target.value;save();};
+["method","order"].forEach(k=>$("#"+k).querySelectorAll("button").forEach(b=>b.onclick=()=>{settings[k]=b.dataset.v;save();renderSide();}));
+$("#weakOnly").onchange=e=>{settings.weakOnly=e.target.checked;save();};
+$("#tts").onchange=e=>{settings.tts=e.target.checked;save();};
+// ===== 読み上げ =====
+const canSpeak = "speechSynthesis" in window;
+let jaVoice=null;
+function pickVoice(){
+  try{
+    const vs=speechSynthesis.getVoices().filter(v=>/^ja/i.test(v.lang));
+    const sc=v=>(/premium|enhanced|natural|neural|プレミアム|拡張/i.test(v.name)?10:0)+(/nanami|keita|google|o-ren|kyoko|siri|hattori/i.test(v.name)?3:0)+(v.localService?1:0);
+    jaVoice=vs.sort((a,b)=>sc(b)-sc(a))[0]||null;
+  }catch(e){}
+}
+if(canSpeak){ pickVoice(); try{ speechSynthesis.onvoiceschanged=pickVoice; }catch(e){} }
+function say(text,force){
+  if(!canSpeak || (!settings.tts && !force) || !text) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text.replace(/[［］\[\]＝]/g,"、").replace(/（|）/g,"、"));
+    u.lang="ja-JP"; if(jaVoice) u.voice=jaVoice; u.rate=1; u.pitch=1;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+const hush=()=>{ try{ canSpeak&&speechSynthesis.cancel(); }catch(e){} };
+let lastSpeech="";
+const SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
+const speakBtn = canSpeak ? `<button class="speak" data-speak>${SPK}もう一度聞く</button>` : "";
+document.addEventListener("click",e=>{ if(e.target.closest("[data-speak]")) say(lastSpeech,true); });
+function spokenSentence(it){
+  return it.sentence.replace(/\[\[(\d+)\]\]/g,(m,n)=> +n===it.n ? "、くうらん、" : getB(it.ch,+n)[1]);
+}
+let view="menu";
+function showMenu(){ hush(); view="menu"; $("header.top").hidden=false; $("footer").hidden=false; $("aside").hidden=false; $("#main").hidden=true; renderSide(); window.scrollTo(0,0); }
+function play(mode){ settings.mode=mode; save(); view="play"; $("header.top").hidden=true; $("footer").hidden=true; $("aside").hidden=true; $("#main").hidden=false; start(); window.scrollTo(0,0); }
+document.addEventListener("click",e=>{ if(e.target.closest("[data-back]")) showMenu(); });
+const BACK='<div class="topbar"><button class="linkbtn back" data-back>← メニュー</button></div>';
+$("#weakReset").onclick=()=>{$("#resetConfirm").hidden=false;};
+$("#resetNo").onclick=()=>{$("#resetConfirm").hidden=true;};
+$("#resetYes").onclick=()=>{weak={};save();$("#resetConfirm").hidden=true;renderSide();};
+
+// ===== 出題 =====
+const inRange = it => settings.range==="all" || String(it.ch)===settings.range || it.sec===settings.range;
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+let Q = {list:[],i:0,score:0,miss:[],answered:false,retry:false};
+
+function start(list){
+  if(settings.mode==="sheet") return renderSheet();
+  let pool = settings.mode==="blank"?blankItems:settings.mode==="text"?textItems:essayItems;
+  pool = list || pool.filter(inRange).filter(it=>!settings.weakOnly||weak[it.id]);
+  if(!list && settings.order==="rand") pool = shuffle(pool);
+  Q = {list:pool,i:0,score:0,miss:[],answered:false};
+  if(!pool.length){
+    $("#main").innerHTML = BACK+`<div class="card"><p class="question">${settings.weakOnly?"この範囲に苦手な問題はありません。":"この範囲には問題がありません。"}</p><p class="note">${settings.weakOnly?"間違えた問題が自動で苦手に登録されます。「苦手だけ出題する」を外して解いてみましょう。":""}</p></div>`;
+    return;
+  }
+  renderQ();
+}
+
+function metaHtml(it,extra=""){
+  const s = secById[it.sec];
+  const pct = Math.round(Q.i/Q.list.length*100);
+  return `<div class="meta"><span class="chip">${s.ch}. ${s.name}</span>${extra}${weak[it.id]?'<span class="chip weak">苦手</span>':''}${speakBtn}<span class="progress">${Q.i+1} / ${Q.list.length}　正解 ${Q.score}</span></div><div class="bar"><i style="width:${pct}%"></i></div>`;
+}
+
+function sentenceHtml(it,state){
+  return it.sentence.replace(/\[\[(\d+)\]\]/g,(m,n)=>{
+    n=+n;
+    if(n===it.n){
+      const cls = state==="ok"?"blank done":state==="ng"?"blank miss":"blank";
+      const txt = state? getB(it.ch,n)[0] : `${n}`;
+      return `<span class="${cls}">${txt}</span>`;
+    }
+    return `<span class="filled">${getB(it.ch,n)[0]}</span>`;
+  });
+}
+
+function makeChoices(correct,cat,custom,ch){
+  let d = custom && custom.length ? custom.slice() : [];
+  if(d.length<3){
+    const same=[]; [5,6].forEach(c=>Object.values(B[c]).forEach(b=>{ if(b[2]===cat && b[0]!==correct) same.push(b[0]); }));
+    (EXTRA[cat]||[]).forEach(x=>{ if(x!==correct) same.push(x); });
+    shuffle([...new Set(same)]).forEach(x=>{ if(d.length<3 && !d.includes(x)) d.push(x); });
+  }
+  return shuffle([correct,...d.slice(0,3)]);
+}
+
+function renderQ(){
+  const it = Q.list[Q.i]; Q.answered=false;
+  const m = settings.mode;
+  if(m==="essay") return renderEssay(it);
+  let correct, qHtml, alts=[], reading="", choices;
+  if(m==="blank"){
+    const b=getB(it.ch,it.n); correct=b[0]; reading=b[1]; alts=b[3]||[];
+    qHtml = `<p class="sentence">${sentenceHtml(it)}</p>`;
+    choices = makeChoices(correct,b[2],b[4],it.ch);
+  } else {
+    correct=it.a; qHtml=`<p class="question">${it.q}</p>`; choices = shuffle([it.a,...it.d]);
+  }
+  const chipExtra = m==="blank"?`<span class="chip">（${it.n}）</span>`:"";
+  let body = BACK+`<div class="card">${metaHtml(it,chipExtra)}${qHtml}`;
+  if(settings.method==="choice"){
+    body += `<div class="choices">${choices.map((c,i)=>`<button class="choice" data-c="${c}"><span class="k">${i+1}</span><span>${c}</span></button>`).join("")}</div>`;
+  } else {
+    body += `<form class="inputrow" id="f"><input id="ans" autocomplete="off" placeholder="答えを入力して Enter" aria-label="答え"><button class="btn">答え合わせ</button></form>`;
+  }
+  body += `<div id="fb"></div></div>`;
+  $("#main").innerHTML = body;
+  lastSpeech = m==="blank" ? spokenSentence(it) : it.q;
+  say(lastSpeech);
+  if(settings.method==="choice"){
+    document.querySelectorAll(".choice").forEach(btn=>btn.onclick=()=>judgeChoice(btn,correct,it));
+  } else {
+    const inp=$("#ans"); inp.focus();
+    $("#f").onsubmit=e=>{e.preventDefault(); if(!Q.answered) judgeInput(inp.value,correct,alts,reading,it);};
+  }
+}
+
+function judgeChoice(btn,correct,it){
+  if(Q.answered) return; Q.answered=true;
+  const ok = btn.dataset.c===correct;
+  document.querySelectorAll(".choice").forEach(b=>{ b.disabled=true; if(b.dataset.c===correct) b.classList.add("right"); });
+  if(!ok) btn.classList.add("wrong");
+  finish(ok?"ok":"ng",correct,it);
+}
+function judgeInput(v,correct,alts,reading,it){
+  if(!v.trim()) return;
+  Q.answered=true;
+  const nv=norm(v);
+  const ok = [correct,...alts].some(a=>norm(a)===nv);
+  const kana = !ok && reading && norm(reading)===nv;
+  finish(ok?"ok":kana?"kana":"ng",correct,it,v);
+}
+function finish(res,correct,it,typed){
+  if(res==="ok") Q.score++; else Q.miss.push(it);
+  markWeak(it.id,res!=="ok");
+  if(settings.mode==="blank"){ const s=$(".sentence"); if(s) s.innerHTML=sentenceHtml(it,res==="ok"?"ok":"ng"); }
+  let reading = settings.mode==="blank" ? getB(it.ch,it.n)[1] : "";
+  const alts = settings.mode==="blank" ? (getB(it.ch,it.n)[3]||[]) : [];
+  const msg = res==="ok"?"正解！":res==="kana"?"読みは正解。テストでは漢字で書けるようにしよう":"不正解";
+  const cls = res==="ok"?"ok":res==="kana"?"mid":"ng";
+  const showRd = reading && !/^[ぁ-ん]+$/.test(correct) && !/^[ァ-ンヴー＝・]+$/.test(correct) && !/^\d+$/.test(correct);
+  $("#fb").innerHTML = `<div class="feedback ${cls}"><strong>${msg}</strong>${res!=="ok"||settings.method==="input"?`<span class="ans">${correct}</span>`:""}${showRd?`<span class="rd">よみ：${reading}</span>`:""}${alts.length?`<span class="rd">別の書き方：${alts.join("、")}</span>`:""}${typed&&res!=="ok"?`<span class="rd">あなたの答え：${typed.replace(/</g,"&lt;")}</span>`:""}</div>
+  <div class="actions"><button class="btn" id="next">次へ</button>${res!=="ok"&&typed?'<button class="btn ghost small" id="override">合っていたので正解にする</button>':''}<span class="kbd">Enter で次へ</span></div>`;
+  $("#next").onclick=next; $("#next").focus();
+  const spokenAns = (settings.mode==="blank" ? getB(it.ch,it.n)[1] : correct);
+  say(res==="ok" ? "正解。"+spokenAns : "正解は、"+spokenAns);
+  const ov=$("#override"); if(ov) ov.onclick=()=>{ Q.score++; Q.miss.pop(); markWeak(it.id,false); markWeak(it.id,false); ov.remove(); $(".feedback").className="feedback ok"; $(".feedback strong").textContent="正解にしました"; };
+}
+function next(){ Q.i++; if(Q.i>=Q.list.length) return renderResult(); renderQ(); }
+
+function renderEssay(it){
+  $("#main").innerHTML = BACK+`<div class="card">${metaHtml(it,`<span class="chip">${it.label}</span>${it.flag?'<span class="chip hint">プリントに「出るかも？」のメモ</span>':''}`)}
+  <p class="question">${it.q}</p>
+  <p class="note">頭の中かノートに答えを書いてから、模範解答を見よう。${/[①-⑮]/.test(it.q)?"資料番号は授業プリント・資料集を参照。":""}</p>
+  <div class="actions"><button class="btn" id="show">模範解答を見る</button><span class="kbd">Enter でも開けます</span></div><div id="fb"></div></div>`;
+  $("#show").onclick=()=>{
+    Q.answered=true;
+    $("#show").parentElement.remove();
+    hush();
+    $("#fb").innerHTML = `<div class="model"><span class="lb">模範解答（プリントの書き込み）</span>${it.a}${canSpeak?`<div style="margin-top:8px"><button class="speak" id="readModel">${SPK}模範解答を読み上げる</button></div>`:""}</div>
+    <div class="self"><button class="g" data-r="g">書けた</button><button class="m" data-r="m">だいたい書けた</button><button class="b" data-r="b">書けなかった</button></div>`;
+    const rm=$("#readModel"); if(rm) rm.onclick=()=>say(it.a,true);
+    document.querySelectorAll(".self button").forEach(b=>b.onclick=()=>{
+      const r=b.dataset.r; if(r==="g") Q.score++; else Q.miss.push(it);
+      markWeak(it.id,r!=="g"); next();
+    });
+  };
+  $("#show").focus();
+  lastSpeech = it.q; say(lastSpeech);
+}
+
+function renderResult(){
+  const total=Q.list.length, pct=Math.round(Q.score/total*100);
+  const msg = pct===100?"全問正解！テスト本番もこの調子で。":pct>=80?"よくできています。間違えたところだけもう一度。":pct>=50?"あと少し。間違えた問題を繰り返そう。":"まずは赤シートで本文を読み直してから再挑戦しよう。";
+  const missHtml = Q.miss.map(it=>{
+    if(settings.mode==="blank"){ const b=getB(it.ch,it.n); return `<li><b>${b[0]}</b><span class="s">${it.ch}章（${it.n}） ${it.sentence.replace(/\[\[(\d+)\]\]/g,(m,n)=>+n===it.n?"（　　）":getB(it.ch,+n)[0]).slice(0,70)}…</span></li>`; }
+    if(settings.mode==="text") return `<li><b>${it.a}</b><span class="s">${it.q}</span></li>`;
+    return `<li><b>${it.ch}章 ${it.label}</b><span class="s">${it.q}</span></li>`;
+  }).join("");
+  $("#main").innerHTML = BACK+`<div class="card result"><h2>結果</h2><div class="score">${Q.score}<span> / ${total}問（${pct}%）</span></div><p>${msg}</p>
+  <div class="actions">${Q.miss.length?'<button class="btn" id="retry">間違えた問題だけもう一度</button>':''}<button class="btn ghost" id="again">最初からもう一度</button><button class="btn ghost" data-back>メニューへ</button></div>
+  ${Q.miss.length?`<ul class="misslist">${missHtml}</ul>`:""}</div>`;
+  const r=$("#retry"); if(r) r.onclick=()=>start(Q.miss.slice());
+  $("#again").onclick=()=>start();
+}
+
+// ===== 赤シート =====
+function renderSheet(){
+  const secs = SECS.filter(s=>settings.range==="all"||String(s.ch)===settings.range||s.id===settings.range);
+  let lastCh=0, html=BACK+`<div class="card"><div class="sheettools"><button class="btn small" id="openAll">全部めくる</button><button class="btn ghost small" id="closeAll">全部かくす</button><span class="kbd">赤いところをタップすると答えが出ます（読み上げONなら読みも流れます）。オレンジ枠は苦手な問題。</span></div>`;
+  secs.forEach(s=>{
+    const head = s.ch!==lastCh ? `<h4>${s.ch===5?"5. アジアのナショナリズム":"6. 大衆の政治参加"}</h4>`:""; lastCh=s.ch;
+    html += `<section class="sec">${head}<h3>《${s.name}》</h3>${s.paras.map(p=>`<p class="para">○${p.replace(/\[\[(\d+)\]\]/g,(m,n)=>{const b=getB(s.ch,+n);return `<button class="rs${weak[`b${s.ch}-${n}`]?" isweak":""}" data-rd="${b[1]}" aria-label="（${n}）答えを見る"><span class="no">${n}</span><span class="tx">${b[0]}</span></button>`;})}</p>`).join("")}</section>`;
+  });
+  html += `</div>`;
+  $("#main").innerHTML = html;
+  document.querySelectorAll(".rs").forEach(b=>b.onclick=()=>{ b.classList.toggle("open"); if(b.classList.contains("open")) say(b.dataset.rd); });
+  $("#openAll").onclick=()=>document.querySelectorAll(".rs").forEach(b=>b.classList.add("open"));
+  $("#closeAll").onclick=()=>document.querySelectorAll(".rs").forEach(b=>b.classList.remove("open"));
+}
+
+// ===== キーボード =====
+document.addEventListener("keydown",e=>{
+  if(view!=="play") return;
+  if(e.key==="Escape"){ showMenu(); return; }
+  if(settings.mode==="sheet") return;
+  const tag=(e.target.tagName||"");
+  if(/^[1-4]$/.test(e.key) && tag!=="INPUT" && !Q.answered){
+    const b=document.querySelectorAll(".choice")[+e.key-1]; if(b){ b.click(); e.preventDefault(); }
+  }
+  if(e.key==="Enter" && tag!=="INPUT" && tag!=="BUTTON"){
+    const n=$("#next")||$("#show"); if(n){ n.click(); e.preventDefault(); }
+  }
+});
+
+const PW="0764";
+function unlock(){ $("#gate").hidden=true; $("#appWrap").hidden=false; showMenu(); }
+let authed=false; try{ authed=localStorage.getItem("rekishi_auth")==="1"; }catch(e){}
+if(authed) unlock(); else {
+  $("#gate").hidden=false; $("#pw").focus();
+  const go=()=>{ if($("#pw").value===PW){ try{localStorage.setItem("rekishi_auth","1");}catch(e){} unlock(); } else $("#pwErr").textContent="パスワードがちがいます"; };
+  $("#pwGo").onclick=go; $("#pw").onkeydown=e=>{ if(e.key==="Enter") go(); };
+}
+</script>
+
+</body>
+</html>
