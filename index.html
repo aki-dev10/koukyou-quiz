@@ -40,6 +40,9 @@
   .keys { font-size:12px; color:#999; margin-top:12px; }
   .result { font-size:22px; font-weight:bold; margin:8px 0; }
   .result.ok { color:var(--ok); } .result.ng { color:var(--ng); }
+  .fig { margin:0 0 14px; }
+  .fig svg { width:100%; height:auto; background:#fafcf8; border:1px solid #e3eedd; border-radius:10px; }
+  #fb .fig { margin-top:12px; }
   .exp { background:#fffbe6; border-left:4px solid #e6c200; padding:10px 14px; border-radius:6px; font-size:16px; }
   .next { width:100%; padding:16px; background:var(--main); color:#fff; font-size:18px; margin-top:16px; }
   .link { background:none; color:#666; text-decoration:underline; font-size:14px; padding:4px; }
@@ -54,6 +57,7 @@
 <body>
 <div class="wrap" id="app"></div>
 <script src="questions.js"></script>
+<script src="figs.js"></script>
 <script>
 const PW = "0764";
 const $app = document.getElementById("app");
@@ -177,6 +181,7 @@ function show() {
     <div class="card">
       <span class="tag">${SECTIONS[item.s].split("（")[0]}${tf ? "　○×問題" : ""}</span>
       <div class="q">${esc(item.q)}</div>
+      ${figHTML(item, true)}
       <div class="choices ${tf ? "tf" : ""}">
         ${choices.map((c, j) => `<button>${tf ? "" : `<span class="no">${j + 1}</span>`}${esc(c)}</button>`).join("")}
       </div>
@@ -221,6 +226,7 @@ function answer(item, choices, idx, btns) {
   document.getElementById("fb").innerHTML = `
     <div class="result ${ok ? "ok" : "ng"}">${ok ? "⭕ 正解！" : "❌ ざんねん… 正解は「" + esc(item.a) + "」"}</div>
     <div class="exp">${esc(item.e)}</div>
+    ${figHTML(item, false)}
     <button class="next" id="next">${last ? "結果を見る" : "次の問題へ →"}</button>`;
   const nx = document.getElementById("next");
   nx.scrollIntoView({ behavior: "smooth", block: "nearest" });
