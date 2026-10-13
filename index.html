@@ -34,6 +34,9 @@
   .choices button.strike { text-decoration:line-through; color:#aaa; }
   .choices button.strike:disabled { color:#aaa; }
   .choices button .no { display:inline-block; min-width:1.6em; color:#999; font-size:14px; }
+  .menu .rates { display:flex; gap:6px; margin-top:8px; }
+  .menu .rates button { flex:1; margin:0; padding:10px 0; text-align:center; font-size:15px; box-shadow:none; border:2px solid #cfdcc8; }
+  .menu .rates button.on { background:var(--main); color:#fff; border-color:var(--main); }
   .keys { font-size:12px; color:#999; margin-top:12px; }
   .result { font-size:22px; font-weight:bold; margin:8px 0; }
   .result.ok { color:var(--ok); } .result.ng { color:var(--ng); }
@@ -101,6 +104,9 @@ function menu() {
       ${secBtns}
       <h2>設定</h2>
       <button id="voice">🔊 問題の読み上げ：${store.get("voice", true) ? "ON" : "OFF"}<small>タップで切りかえ</small></button>
+      <div class="card" style="padding:14px 18px">読み上げの速さ
+        <div class="rates">${RATES.map(r => `<button data-rate="${r}" class="${store.get("rate", 1) === r ? "on" : ""}">${r}倍</button>`).join("")}</div>
+      </div>
       <h2>その他</h2>
       <button data-mode="all">全問チャレンジ<small>全${ALL.length}問</small></button>
     </div>
@@ -116,6 +122,9 @@ function menu() {
     if (list.length) start(list, title, key);
   });
   document.getElementById("voice").onclick = () => { store.set("voice", !store.get("voice", true)); menu(); };
+  $app.querySelectorAll("[data-rate]").forEach(b => b.onclick = () => {
+    store.set("rate", +b.dataset.rate); menu(); speak("この速さで読み上げます");
+  });
   document.getElementById("reset").onclick = () => {
     if (confirm("苦手と記録をリセットしますか？")) { store.set("wrong", []); store.set("best", {}); menu(); }
   };
@@ -126,16 +135,35 @@ function start(list, title, key) {
   show();
 }
 
+const RATES = [0.8, 1, 1.2, 1.4, 1.6];
+let jaVoice = null;
+// 高品質な日本語音声（拡張・Siri・Google等）を優先して選ぶ
+function pickVoice() {
+  try {
+    const vs = speechSynthesis.getVoices().filter(v => /^ja/i.test(v.lang));
+    const sc = v => (/premium|enhanced|natural|neural|プレミアム|拡張/i.test(v.name) ? 10 : 0)
+      + (/siri|nanami|keita|google|o-ren|kyoko|hattori/i.test(v.name) ? 3 : 0) + (v.localService ? 1 : 0);
+    jaVoice = vs.sort((a, b) => sc(b) - sc(a))[0] || null;
+  } catch {}
+}
+if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
 function speak(text) {
   if (!("speechSynthesis" in window)) return;
   speechSynthesis.cancel();
   if (!store.get("voice", true)) return;
-  const u = new SpeechSynthesisUtterance(text.replace(/【.*?】/g, "").replace(/（\s*[A-Z]?\s*）/g, "、空欄、"));
+  // かっこ・記号で読みが途切れないよう整える
+  const t = text.replace(/【.*?】/g, "")
+    .replace(/（\s*[A-Z]?\s*）/g, "、")
+    .replace(/[「」『』（）()〈〉]/g, " ")
+    .replace(/\s+/g, " ").trim();
+  const u = new SpeechSynthesisUtterance(t);
   u.lang = "ja-JP";
-  u.rate = 1.0;
-  const v = speechSynthesis.getVoices().find(v => v.lang.startsWith("ja"));
-  if (v) u.voice = v;
-  speechSynthesis.speak(u);
+  u.rate = store.get("rate", 1);
+  u.pitch = 1;
+  if (jaVoice) u.voice = jaVoice;
+  // cancel直後のspeakが無視される端末対策で少し待つ
+  setTimeout(() => speechSynthesis.speak(u), 50);
 }
 
 function show() {
