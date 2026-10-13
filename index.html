@@ -181,7 +181,7 @@ function show() {
         ${choices.map((c, j) => `<button>${tf ? "" : `<span class="no">${j + 1}</span>`}${esc(c)}</button>`).join("")}
       </div>
       <div id="fb"></div>
-      <div class="keys">キーボード：テンキー1〜4＝取り消し線 ／ Shift+テンキー1〜4＝解答 ／ n＝次へ ／ r＝もう一度読み上げ</div>
+      <div class="keys">キーボード：テンキー1〜4＝取り消し線 ／ Shift+テンキー1〜4＝解答 ／ n・Enter＝次へ ／ r＝もう一度読み上げ</div>
     </div>`;
   document.getElementById("quit").onclick = () => { if (confirm("メニューにもどりますか？")) { speechSynthesis.cancel(); menu(); } };
   document.getElementById("say").onclick = () => speak(item.q);
@@ -199,7 +199,7 @@ function show() {
       else btns[idx].classList.toggle("strike");
     } else if (e.key === "r" || e.key === "R") {
       e.preventDefault(); speak(item.q);
-    } else if (e.key === "n" || e.key === "N") {
+    } else if (e.key === "n" || e.key === "N" || e.key === "Enter") {
       const nx = document.getElementById("next");
       if (nx) { e.preventDefault(); nx.click(); }
     }
