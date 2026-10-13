@@ -132,6 +132,40 @@ main{min-width:0}
 .rs.open .tx{color:var(--orange);font-weight:700}
 .rs.open .no{color:var(--muted)}
 .rs.isweak:not(.open){box-shadow:0 0 0 2px var(--orange)}
+.figs{display:flex;flex-direction:column;gap:14px;margin-top:20px}
+.fig{border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:14px 16px;min-width:0}
+.fig h5{margin:0 0 10px;font-size:.85rem;letter-spacing:.08em;color:var(--teal)}
+.fig .cap{font-size:.8rem;color:var(--muted);margin:8px 0 0}
+.mapwrap{overflow-x:auto}
+.mapsvg{width:100%;min-width:560px;height:auto;display:block;border-radius:8px}
+.mapsvg .sea{fill:var(--teal-soft)}
+.mapsvg .land{fill:var(--sheet);stroke:var(--line);stroke-width:1.5}
+.mapsvg .rg{fill:var(--muted);font-size:26px;opacity:.45;font-weight:700}
+.mapsvg .pt circle{fill:var(--muted)}
+.mapsvg .pt text{fill:var(--muted);font-size:19px}
+.mapsvg .pt .ld{stroke:var(--muted);stroke-width:1;opacity:.6}
+.mapsvg .pt.hl circle{fill:var(--orange);stroke:var(--sheet);stroke-width:3}
+.mapsvg .pt.hl text{fill:var(--ink);font-weight:700;font-size:21px}
+.tl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 14px;font-size:.92rem}
+.tl .y,.bars .y{font-variant-numeric:tabular-nums;font-weight:700;color:var(--teal)}
+.tl .tag{font-size:.72rem;padding:0 7px;border-radius:999px;background:var(--teal-soft);color:var(--teal);margin-left:6px;white-space:nowrap}
+.bars{display:flex;flex-direction:column;gap:10px;font-size:.88rem}
+.bars .row{display:grid;grid-template-columns:4.2em minmax(0,1fr) 3.4em;gap:4px 10px;align-items:center}
+.bars .b{display:block;height:14px;background:var(--orange);border-radius:3px;min-width:3px}
+.bars .v{font-variant-numeric:tabular-nums;text-align:right}
+.bars .c{grid-column:2/4;color:var(--muted);font-size:.8rem}
+.tbl{overflow-x:auto}
+table.su{border-collapse:collapse;font-size:.9rem;width:100%}
+.su th,.su td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+.su th{color:var(--muted);font-weight:700;font-size:.8rem}
+.me3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.me3{grid-template-columns:minmax(0,1fr)}}
+.me3 .ag{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.88rem;display:flex;flex-direction:column;gap:4px}
+.me3 .ag b{color:var(--orange)}
+.me3 .to{font-size:.8rem;color:var(--muted)}
+.me3note{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--ng-soft);font-size:.9rem}
+.figbox{margin:4px 0 12px}
+.figbox summary{cursor:pointer;color:var(--teal);font-weight:700;font-size:.9rem}
 footer{margin-top:28px;font-size:.8rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -183,7 +217,7 @@ footer{margin-top:28px;font-size:.8rem;color:var(--muted);display:flex;flex-wrap
     </aside>
     <main id="main" hidden></main>
   </div>
-  <footer><span>2026/10/11 20:18 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
+  <footer><span>2026/10/14 08:40 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
 </div>
 
 <script>
@@ -427,14 +461,15 @@ const markWeak = (id,bad)=>{ if(bad){ weak[id]=(weak[id]||0)+1; } else if(weak[i
 
 // ===== サイドバー =====
 const MODES = [
-  {v:"blank",t:"穴埋め（括弧）",s:"プリントの（ ）から出題",n:()=>blankItems.length},
-  {v:"sheet",t:"赤シート",s:"本文を読んでタップでめくる",n:()=>blankItems.length},
-  {v:"text",t:"本文から",s:"年号・人物などの一問一答",n:()=>textItems.length},
-  {v:"essay",t:"記述（おまけ）",s:"Q・アプローチの模範解答",n:()=>essayItems.length}
+  {v:"blank",t:"穴埋め（括弧）",s:"プリントの（ ）から出題",n:()=>blankItems.length+"問"},
+  {v:"sheet",t:"赤シート",s:"本文を読んでタップでめくる",n:()=>blankItems.length+"問"},
+  {v:"text",t:"本文から",s:"年号・人物などの一問一答",n:()=>textItems.length+"問"},
+  {v:"essay",t:"記述（おまけ）",s:"Q・アプローチの模範解答",n:()=>essayItems.length+"問"},
+  {v:"figs",t:"図で整理",s:"地図・年表・しくみの図をまとめて見る",n:()=>"6図"}
 ];
 const $ = s=>document.querySelector(s);
 function renderSide(){
-  $("#modes").innerHTML = MODES.map(m=>`<button data-v="${m.v}" aria-pressed="${settings.mode===m.v}"><span>${m.t}<small>${m.s}</small></span><span class="n">${m.n()}問</span></button>`).join("");
+  $("#modes").innerHTML = MODES.map(m=>`<button data-v="${m.v}" aria-pressed="${settings.mode===m.v}"><span>${m.t}<small>${m.s}</small></span><span class="n">${m.n()}</span></button>`).join("");
   $("#modes").querySelectorAll("button").forEach(b=>b.onclick=()=>play(b.dataset.v));
   const opts = [["all","全範囲"],["5","5. アジアのナショナリズム（全部）"],...SECS.filter(s=>s.ch===5).map(s=>[s.id,"　"+s.name]),["6","6. 大衆の政治参加（全部）"],...SECS.filter(s=>s.ch===6).map(s=>[s.id,"　"+s.name])];
   $("#range").innerHTML = opts.map(o=>`<option value="${o[0]}" ${settings.range===o[0]?"selected":""}>${o[1]}</option>`).join("");
@@ -496,6 +531,88 @@ $("#weakReset").onclick=()=>{$("#resetConfirm").hidden=false;};
 $("#resetNo").onclick=()=>{$("#resetConfirm").hidden=true;};
 $("#resetYes").onclick=()=>{weak={};save();$("#resetConfirm").hidden=true;renderSide();};
 
+// ===== 図（地図・年表など）=====
+const MAP_SVG = `<svg class="mapsvg" viewBox="0 50 1000 420" role="img" aria-label="アジアの地図"><rect x="0" y="50" width="1000" height="420" class="sea"/><path d="M853,520L854,518L864,518L871,520L853,520ZM916,520L920,514L930,509L937,509L944,512L950,515L959,516L968,520L916,520ZM888,520L885,518L894,515L900,515L899,513L887,513L884,508L877,507L873,503L884,501L888,498L902,502L903,505L903,505L905,518L909,520L888,520ZM795,520L795,517L789,519L789,520L778,520L778,520L777,518L780,513L781,506L785,494L787,491L794,484L801,487L811,488L820,488L828,482L830,484L830,484L823,492L817,493L809,492L796,492L788,493L787,499L795,507L799,503L814,500L814,504L810,503L806,508L799,511L806,520L795,520ZM858,486L858,493L853,492L852,497L856,502L853,503L850,497L848,487L849,480L852,477L852,482L857,483ZM636,520L634,518L630,512L624,501L617,494L615,487L611,480L604,475L600,468L594,463L585,454L584,450L590,451L602,452L610,460L616,466L620,469L628,478L637,478L643,484L648,491L654,494L651,501L656,504L659,504L660,510L663,514L669,515L673,520L636,520ZM719,520L719,520L716,520L712,520L712,520L707,519L705,508L701,506L697,499L696,492L697,484L702,479L708,482L714,480L716,473L720,472L729,470L735,463L739,458L743,455L750,450L756,445L760,438L763,438L768,442L768,446L773,448L780,451L780,454L774,454L776,458L770,461L765,469L771,476L769,480L769,480L779,488L769,489L766,494L767,502L759,507L758,516L757,520L719,520ZM839,426L840,431L840,436L838,444L835,435L831,439L833,445L831,449L821,445L819,439L822,435L816,431L814,434L810,434L804,438L803,436L806,429L811,427L815,424L818,427L825,425L826,421L832,421L831,415L838,419L839,423ZM469,444L462,446L458,440L457,428L460,414L466,419L470,425L474,433L472,442ZM820,410L817,413L814,418L811,421L806,415L808,413L810,411L811,405L816,405L814,411L820,403ZM775,418L764,426L768,421L774,415L779,410L783,401L784,408L779,413ZM802,397L807,400L812,400L812,403L809,407L803,409L803,405L804,401ZM832,395L834,404L828,402L828,405L830,410L826,412L826,406L823,405L822,400L827,401L827,398L822,391L830,392ZM799,387L797,394L794,390L790,384L797,384ZM798,341L803,343L805,341L806,343L805,347L807,353L805,360L801,363L799,370L801,376L805,377L809,376L819,381L818,386L821,388L820,392L814,387L811,383L809,386L804,381L796,382L792,380L792,377L795,375L793,373L792,376L787,371L786,367L786,359L789,362L790,349L793,341ZM708,339L701,343L694,341L694,333L698,329L707,327L711,327L713,330L710,334ZM797,303L793,311L789,303L788,296L793,288L799,281L803,283L801,289ZM907,197L908,200L903,206L900,203L896,206L894,211L888,208L888,204L893,198L897,199L901,195ZM87,182L81,186L82,189L74,193L70,192L68,188L72,187L73,185L79,185ZM0,183L2,185L8,184L15,185L14,187L19,186L18,189L6,189L6,188L0,187L0,183ZM959,167L956,175L957,180L953,187L942,192L928,193L916,204L911,200L910,193L896,195L887,199L877,200L885,207L880,223L874,227L870,224L873,215L867,212L864,205L872,202L876,196L884,191L890,184L907,181L915,183L924,165L929,170L946,156L951,143L950,131L953,124L962,122L967,137L966,146L959,156ZM983,91L989,93L994,88L996,101L984,104L977,115L964,108L960,120L950,120L949,109L953,100L962,100L965,84L967,75L977,87ZM978,0L981,11L981,11L989,33L977,29L972,47L980,60L980,68L973,61L968,70L966,60L967,48L966,35L968,25L969,8L966,0L978,0ZM206,123L210,131L214,131L216,134L210,135L208,143L207,147L204,149L204,155L207,162L214,164L220,170L232,171L244,169L245,166L244,159L245,148L239,144L241,137L235,137L237,127L245,130L252,127L246,120L244,114L237,117L236,125L234,118L233,115L235,110L234,106L224,103L220,92L216,89L216,86L224,87L224,78L231,76L238,78L240,67L238,59L230,60L223,57L213,62L206,65L202,72L194,74L186,86L193,97L193,104L202,117ZM958,0L956,5L955,20L951,40L939,58L936,66L914,93L909,100L898,106L893,106L888,101L877,109L875,113L872,112L869,116L866,120L866,127L862,130L861,132L858,135L852,137L849,139L848,144L847,145L851,147L855,152L862,164L864,171L865,182L861,188L854,190L847,194L840,195L839,189L841,182L837,171L843,169L838,161L834,159L833,161L830,161L830,159L828,159L825,157L828,152L830,151L829,149L831,143L831,142L826,141L822,138L810,141L804,146L796,149L800,144L798,140L805,132L800,127L793,131L784,138L779,145L771,145L767,150L771,157L778,159L778,164L784,167L794,159L801,163L806,164L808,169L796,172L792,177L784,182L780,189L789,195L792,205L797,214L803,221L802,228L797,231L799,236L804,239L803,246L801,254L796,255L790,265L783,277L776,288L765,296L753,303L744,304L739,308L736,305L731,310L720,314L711,316L709,325L704,325L702,319L704,316L693,313L689,314L678,322L671,330L669,336L676,345L683,356L691,362L696,368L699,384L698,399L692,404L682,410L675,417L665,424L662,419L665,413L658,409L652,408L648,403L644,395L637,391L630,391L631,384L624,384L623,394L616,413L617,419L622,419L625,427L627,434L631,439L636,440L641,444L642,445L647,450L651,455L651,461L650,465L651,467L652,472L655,475L658,482L658,485L652,485L644,479L634,473L633,468L629,463L628,456L625,452L625,446L624,442L620,439L619,435L615,430L611,426L609,431L608,426L609,421L611,413L610,407L613,401L610,396L611,387L607,382L605,372L603,361L600,354L594,359L585,365L580,364L575,362L578,351L576,343L570,333L571,330L566,329L560,322L558,317L558,313L556,309L553,303L545,303L546,307L543,312L540,310L539,312L536,311L533,310L532,313L526,313L516,315L517,321L512,326L500,332L491,343L485,348L477,354L477,358L473,360L466,363L462,363L459,370L461,381L461,388L458,396L458,410L454,410L450,417L452,419L445,422L442,427L439,430L431,422L427,410L424,402L421,398L417,390L415,379L413,374L406,362L403,346L400,335L400,324L399,316L387,321L381,320L370,309L374,306L372,303L362,295L356,293L354,286L347,280L332,281L319,281L307,283L292,280L283,278L274,277L270,265L266,264L260,266L252,270L242,267L233,260L226,257L220,248L214,236L210,237L204,234L201,238L197,237L198,242L197,244L200,251L203,259L207,261L209,264L214,268L215,272L214,275L215,278L217,280L219,283L220,286L219,279L221,274L224,273L226,276L226,281L224,287L226,290L228,290L228,292L234,291L241,291L246,291L252,285L258,279L263,274L265,271L266,272L266,275L264,277L266,284L269,290L274,294L280,295L285,296L288,301L291,304L294,306L293,307L291,313L289,315L286,318L283,324L279,324L277,326L276,330L277,336L276,337L272,337L267,340L266,344L265,346L260,346L256,348L256,352L252,354L248,353L242,356L239,357L233,359L231,363L231,366L223,369L210,373L202,379L199,380L196,379L191,383L186,384L179,385L177,385L175,387L173,388L172,390L168,390L165,391L160,391L158,386L158,381L156,379L155,372L152,369L154,369L153,365L154,363L154,359L153,356L150,353L150,350L146,347L141,339L139,332L133,326L130,325L124,316L123,310L123,305L119,295L115,292L111,290L108,285L108,283L106,278L104,276L100,269L95,262L91,255L87,255L88,250L89,247L90,243L90,242L87,246L85,253L83,258L81,259L75,252L69,239L68,239L72,249L77,259L83,273L86,278L88,283L96,293L94,295L94,300L104,308L105,310L108,319L106,320L107,329L111,340L114,342L118,345L123,355L125,363L130,367L141,375L145,380L150,385L152,388L156,390L158,393L158,396L153,398L157,401L160,402L161,406L165,409L169,409L177,407L186,406L193,403L197,403L200,401L207,401L211,400L215,399L219,396L222,396L222,398L222,403L222,407L220,410L218,419L214,429L209,439L202,451L195,461L185,472L177,478L165,487L157,493L148,503L146,507L144,509L138,512L136,516L133,516L133,520L0,520L0,218L8,219L10,222L20,222L28,225L36,227L40,229L47,226L50,223L57,222L63,224L65,228L67,225L74,227L80,228L84,226L87,222L86,222L88,217L90,210L91,208L91,207L94,199L98,192L98,192L98,184L100,180L97,176L100,172L95,173L88,170L82,176L70,177L63,172L54,172L52,176L47,177L39,172L30,172L25,162L19,156L23,148L18,143L27,132L40,132L43,124L59,125L68,118L78,115L92,115L106,122L118,127L127,125L134,126L144,120L145,116L143,108L138,104L134,103L131,99L120,90L111,85L104,78L110,77L117,67L112,62L124,57L124,54L117,56L110,57L105,61L97,62L90,66L90,74L94,76L103,76L101,80L92,82L81,89L76,86L78,81L69,77L71,75L79,71L76,69L63,66L63,61L55,63L52,69L46,78L46,81L42,83L40,82L37,96L33,101L30,109L33,115L34,119L41,123L39,126L30,126L26,129L19,135L17,130L17,128L12,128L8,127L0,129L0,0ZM0,132L3,136L0,137L0,132ZM0,156L0,156L0,162L0,161L0,156Z" class="land"/><text class="rg" x="470" y="300">インド</text><text class="rg" x="690" y="230">中国</text><text class="rg" x="140" y="375">アラビア半島</text><text class="rg" x="520" y="150">（ロシア）</text><g class="pt" data-k="istanbul" data-g="west"><circle cx="41" cy="126" r="6"/><text x="30" y="98" text-anchor="start">イスタンブル</text></g><g class="pt" data-k="ankara" data-g="west"><circle cx="73" cy="138" r="6"/><text x="92" y="142" text-anchor="start">アンカラ（トルコ）</text></g><g class="pt" data-k="jerusalem" data-g="west"><line x1="92" y1="220" x2="112" y2="256" class="ld"/><circle cx="92" cy="220" r="6"/><text x="112" y="262" text-anchor="start">パレスチナ</text></g><g class="pt" data-k="suez" data-g="west"><line x1="70" y1="232" x2="20" y2="294" class="ld"/><circle cx="70" cy="232" r="6"/><text x="20" y="300" text-anchor="start">スエズ運河</text></g><g class="pt" data-k="cairo" data-g="west"><line x1="59" y1="237" x2="20" y2="322" class="ld"/><circle cx="59" cy="237" r="6"/><text x="20" y="328" text-anchor="start">カイロ（エジプト）</text></g><g class="pt" data-k="baghdad" data-g="west"><circle cx="167" cy="205" r="6"/><text x="150" y="175" text-anchor="start">バグダード（イラク）</text></g><g class="pt" data-k="tehran" data-g="west"><circle cx="225" cy="182" r="6"/><text x="240" y="210" text-anchor="start">テヘラン（イラン）</text></g><g class="pt" data-k="delhi" data-g="india"><circle cx="436" cy="250" r="6"/><text x="424" y="246" text-anchor="end">デリー</text></g><g class="pt" data-k="calcutta" data-g="india"><circle cx="528" cy="305" r="6"/><text x="540" y="322" text-anchor="start">カルカッタ（ベンガル）</text></g><g class="pt" data-k="beijing" data-g="east"><circle cx="757" cy="138" r="6"/><text x="745" y="128" text-anchor="end">北京</text></g><g class="pt" data-k="korea" data-g="east"><circle cx="844" cy="162" r="6"/><text x="858" y="150" text-anchor="start">朝鮮</text></g><g class="pt" data-k="shandong" data-g="east"><line x1="790" y1="177" x2="735" y2="180" class="ld"/><circle cx="790" cy="177" r="6"/><text x="735" y="186" text-anchor="end">山東（青島）</text></g><g class="pt" data-k="shanghai" data-g="east"><circle cx="799" cy="226" r="6"/><text x="812" y="240" text-anchor="start">上海</text></g><g class="pt" data-k="tokyo" data-g="east"><circle cx="948" cy="182" r="6"/><text x="948" y="212" text-anchor="middle">東京</text></g></svg>`;
+const TL_ASIA = [
+ ["1885","インド国民会議が開催される","インド"],
+ ["1905","イギリスがベンガル分割令を公布","インド"],
+ ["1906","国民会議派がカルカッタ大会で四大綱領","インド"],
+ ["1910","韓国併合・朝鮮総督府を設置","朝鮮"],
+ ["1911","辛亥革命","中国"],
+ ["1915","日本が二十一カ条の要求","中国"],
+ ["1919","三・一独立運動","朝鮮"],
+ ["1919","五・四運動／孫文が中国国民党","中国"],
+ ["1919","ローラット法","インド"],
+ ["1921","中国共産党が創立","中国"],
+ ["1922","エジプト王国が成立","西アジア"],
+ ["1922","スルタン制廃止 → オスマン帝国滅亡","西アジア"],
+ ["1923","トルコ共和国が成立（大統領ケマル）","西アジア"],
+ ["1925","パフレヴィー朝が成立","西アジア"],
+ ["1935","国名をペルシアからイランに変更","西アジア"]
+];
+const TL_JAPAN = [
+ ["1905","日比谷焼き打ち事件（日露戦争の講和に不満）"],
+ ["1910","大逆事件 → 社会主義運動が低迷"],
+ ["1911","青鞜社（平塚らいてう）"],
+ ["1913","第1次護憲運動 → 大正政変（桂内閣が倒れる）"],
+ ["1916","吉野作造が民本主義をとなえる"],
+ ["1918","米騒動 → 寺内内閣退陣・原敬内閣"],
+ ["1919","選挙資格を直接国税3円以上に引き下げ"],
+ ["1920","新婦人協会（平塚らいてう・市川房枝）"],
+ ["1922","全国水平社／日本共産党／治安警察法の条文廃止"],
+ ["1924","護憲三派 → 加藤高明内閣"],
+ ["1925","男性普通選挙が実現・治安維持法"],
+ ["1932","五・一五事件 → 政党内閣が終わる"],
+ ["1945","女性参政権が実現"]
+];
+const FIG_RENDER = {
+  tl_asia:()=>`<div class="fig"><h5>年表：アジアのナショナリズム</h5><div class="tl">${TL_ASIA.map(r=>`<span class="y">${r[0]}</span><span>${r[1]}<span class="tag">${r[2]}</span></span>`).join("")}</div></div>`,
+  tl_japan:()=>`<div class="fig"><h5>年表：日本の大衆運動と社会運動</h5><div class="tl">${TL_JAPAN.map(r=>`<span class="y">${r[0]}</span><span>${r[1]}</span>`).join("")}</div></div>`,
+  electorate:()=>{
+    const R=[["1889","直接国税15円以上・25歳以上の男子",1.1],["1900","直接国税10円以上",2.2],["1919","直接国税3円以上（原内閣）",5.5],["1925","25歳以上の男子（加藤高明内閣）",20.8],["1945","20歳以上の男女",48.7]];
+    return `<div class="fig"><h5>日本の有権者の広がり（全人口に対する割合）</h5><div class="bars">${R.map(r=>`<div class="row"><span class="y">${r[0]}年</span><span><i class="b" style="width:${(r[2]/50*100).toFixed(1)}%"></i></span><span class="v">${r[2]}%</span><span class="c">${r[1]}</span></div>`).join("")}</div><p class="cap">納税額の条件がなくなった1925年に有権者が約4倍になりました。女性が加わるのは1945年です。</p></div>`;
+  },
+  suffrage_world:()=>`<div class="fig"><h5>参政権が実現した時期</h5><div class="tbl"><table class="su"><thead><tr><th>国</th><th>男性普通選挙</th><th>女性参政権</th></tr></thead><tbody>
+<tr><td>フランス</td><td>1848年（19世紀）</td><td>1944年（第二次世界大戦を経て）</td></tr>
+<tr><td>アメリカ</td><td>19世紀</td><td>1920年（第一次世界大戦後）</td></tr>
+<tr><td>ドイツ</td><td>1871年（19世紀）</td><td>1919年（第一次世界大戦後）</td></tr>
+<tr><td>ロシア</td><td>1917年（革命下）</td><td>1917年（男性と同時）</td></tr>
+<tr><td>イギリス</td><td>1918年（大戦中の総力戦）</td><td>1918年は30歳以上だけ → 1928年に男女平等</td></tr>
+<tr><td>日本</td><td>1925年（第一次世界大戦後）</td><td>1945年（第二次世界大戦を経て）</td></tr>
+<tr><td>インド・中国</td><td colspan="2">第二次世界大戦後に男女ともに実現</td></tr>
+</tbody></table></div><p class="cap">イギリスでは女性にだけ年齢の差がつけられた（Q4の背景）。</p></div>`,
+  me3:()=>`<div class="fig"><h5>イギリスの3つの約束（第一次世界大戦中）</h5><div class="me3">
+<div class="ag"><b>1915年 フセイン・マクマホン協定</b><span class="to">相手：アラブ人</span><span>オスマン帝国からの独立とアラブ国家をつくることを約束</span></div>
+<div class="ag"><b>1916年 サイクス・ピコ協定（秘密）</b><span class="to">相手：フランス・ロシア</span><span>戦後、中東を英・仏などで分割することを取り決め</span></div>
+<div class="ag"><b>1917年 バルフォア宣言</b><span class="to">相手：ユダヤ人</span><span>パレスチナにユダヤ人の民族的郷土をつくることを認める</span></div>
+</div><p class="me3note">同じ土地について食い違う約束をしたので、矛盾が生まれた（Q9）。戦後は英・仏の委任統治領となり、反発したアラブ人がイラク王国などを成立させた（Q10）。</p></div>`
+};
+function mapFig(groups){
+  const hl=groups.split("+");
+  const svg=MAP_SVG.replace(/class="pt" data-k="(\w+)" data-g="(\w+)"/g,(m,k,g)=>hl.includes(g)?`class="pt hl" data-k="${k}" data-g="${g}"`:m);
+  return `<div class="fig"><h5>地図で確認</h5><div class="mapwrap">${svg}</div><p class="cap">オレンジの点がこの範囲に関係する場所です（国境線は省略）。</p></div>`;
+}
+const SECFIG = {"5a":["map:east"],"5b":["map:india"],"5c":["map:west"],"6a":["suffrage_world"],"6b":["tl_japan"],"6c":["tl_japan"]};
+const FIGMAP = {
+  "b5-29":["me3","map:west"],"e5-Q9":["me3"],"e5-Q10":["me3","map:west"],"e5-アプローチ③":["map:india+west"],"e5-アプローチ①":["map:east"],"e5-アプローチ②":["map:east+india"],
+  "b6-19":["electorate","tl_japan"],"b6-20":["electorate"],"b6-33":["suffrage_world","electorate"],
+  "t21":["suffrage_world"],"t22":["suffrage_world"],"t27":["electorate"],"t29":["electorate"],
+  "e6-Q5":[],"e6-Q6":[],"e6-Q11":["electorate"],"e6-Q12":["electorate"],"e6-Q13":["suffrage_world"],"e6-Q14":["suffrage_world","electorate"],"e6-アプローチ②":["electorate","suffrage_world"]
+};
+function figsFor(it){
+  if(FIGMAP[it.id]) return FIGMAP[it.id];
+  if(settings.mode==="text" && /何年/.test(it.q)) return [it.ch===5?"tl_asia":"tl_japan"];
+  return SECFIG[it.sec]||[];
+}
+function figHtml(keys){
+  if(!keys||!keys.length) return "";
+  return `<div class="figs">${keys.map(k=>k.startsWith("map:")?mapFig(k.slice(4)):(FIG_RENDER[k]?FIG_RENDER[k]():"")).join("")}</div>`;
+}
+function renderFigs(){
+  hush();
+  $("#main").innerHTML = BACK+`<div class="card"><p class="note" style="margin-top:0">テスト範囲の場所・年代・しくみを図でまとめました。</p>${figHtml(["map:east+india+west","tl_asia","me3","suffrage_world","electorate","tl_japan"])}</div>`;
+}
+
 // ===== 出題 =====
 const inRange = it => settings.range==="all" || String(it.ch)===settings.range || it.sec===settings.range;
 const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -503,6 +620,7 @@ let Q = {list:[],i:0,score:0,miss:[],answered:false,retry:false};
 
 function start(list){
   if(settings.mode==="sheet") return renderSheet();
+  if(settings.mode==="figs") return renderFigs();
   let pool = settings.mode==="blank"?blankItems:settings.mode==="text"?textItems:essayItems;
   pool = list || pool.filter(inRange).filter(it=>!settings.weakOnly||weak[it.id]);
   if(!list && settings.order==="rand") pool = shuffle(pool);
@@ -599,6 +717,7 @@ function finish(res,correct,it,typed){
   const showRd = reading && !/^[ぁ-ん]+$/.test(correct) && !/^[ァ-ンヴー＝・]+$/.test(correct) && !/^\d+$/.test(correct);
   $("#fb").innerHTML = `<div class="feedback ${cls}"><strong>${msg}</strong>${res!=="ok"||settings.method==="input"?`<span class="ans">${correct}</span>`:""}${showRd?`<span class="rd">よみ：${reading}</span>`:""}${alts.length?`<span class="rd">別の書き方：${alts.join("、")}</span>`:""}${typed&&res!=="ok"?`<span class="rd">あなたの答え：${typed.replace(/</g,"&lt;")}</span>`:""}</div>
   <div class="actions"><button class="btn" id="next">次へ</button>${res!=="ok"&&typed?'<button class="btn ghost small" id="override">合っていたので正解にする</button>':''}<span class="kbd">Enter で次へ</span></div>`;
+  $("#fb").insertAdjacentHTML("beforeend", figHtml(figsFor(it)));
   $("#next").onclick=next; $("#next").focus();
   const spokenAns = (settings.mode==="blank" ? getB(it.ch,it.n)[1] : correct);
   say(res==="ok" ? "正解。"+spokenAns : "正解は、"+spokenAns);
@@ -615,7 +734,7 @@ function renderEssay(it){
     Q.answered=true;
     $("#show").parentElement.remove();
     hush();
-    $("#fb").innerHTML = `<div class="model"><span class="lb">模範解答（プリントの書き込み）</span>${it.a}${canSpeak?`<div style="margin-top:8px"><button class="speak" id="readModel">${SPK}模範解答を読み上げる</button></div>`:""}</div>
+    $("#fb").innerHTML = `<div class="model"><span class="lb">模範解答（プリントの書き込み）</span>${it.a}${canSpeak?`<div style="margin-top:8px"><button class="speak" id="readModel">${SPK}模範解答を読み上げる</button></div>`:""}</div>${figHtml(figsFor(it))}
     <div class="self"><button class="g" data-r="g">書けた</button><button class="m" data-r="m">だいたい書けた</button><button class="b" data-r="b">書けなかった</button></div>`;
     const rm=$("#readModel"); if(rm) rm.onclick=()=>say(it.a,true);
     document.querySelectorAll(".self button").forEach(b=>b.onclick=()=>{
@@ -648,7 +767,8 @@ function renderSheet(){
   let lastCh=0, html=BACK+`<div class="card"><div class="sheettools"><button class="btn small" id="openAll">全部めくる</button><button class="btn ghost small" id="closeAll">全部かくす</button><span class="kbd">赤いところをタップすると答えが出ます（読み上げONなら読みも流れます）。オレンジ枠は苦手な問題。</span></div>`;
   secs.forEach(s=>{
     const head = s.ch!==lastCh ? `<h4>${s.ch===5?"5. アジアのナショナリズム":"6. 大衆の政治参加"}</h4>`:""; lastCh=s.ch;
-    html += `<section class="sec">${head}<h3>《${s.name}》</h3>${s.paras.map(p=>`<p class="para">○${p.replace(/\[\[(\d+)\]\]/g,(m,n)=>{const b=getB(s.ch,+n);return `<button class="rs${weak[`b${s.ch}-${n}`]?" isweak":""}" data-rd="${b[1]}" aria-label="（${n}）答えを見る"><span class="no">${n}</span><span class="tx">${b[0]}</span></button>`;})}</p>`).join("")}</section>`;
+    const fk=SECFIG[s.id]||[];
+    html += `<section class="sec">${head}<h3>《${s.name}》</h3>${fk.length?`<details class="figbox"><summary>図を見る</summary>${figHtml(fk)}</details>`:""}${s.paras.map(p=>`<p class="para">○${p.replace(/\[\[(\d+)\]\]/g,(m,n)=>{const b=getB(s.ch,+n);return `<button class="rs${weak[`b${s.ch}-${n}`]?" isweak":""}" data-rd="${b[1]}" aria-label="（${n}）答えを見る"><span class="no">${n}</span><span class="tx">${b[0]}</span></button>`;})}</p>`).join("")}</section>`;
   });
   html += `</div>`;
   $("#main").innerHTML = html;
@@ -661,7 +781,7 @@ function renderSheet(){
 document.addEventListener("keydown",e=>{
   if(view!=="play") return;
   if(e.key==="Escape"){ showMenu(); return; }
-  if(settings.mode==="sheet") return;
+  if(settings.mode==="sheet"||settings.mode==="figs") return;
   const tag=(e.target.tagName||"");
   if(/^[1-4]$/.test(e.key) && tag!=="INPUT" && !Q.answered){
     const b=document.querySelectorAll(".choice")[+e.key-1]; if(b){ b.click(); e.preventDefault(); }
