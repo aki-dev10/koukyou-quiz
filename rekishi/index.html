@@ -147,6 +147,36 @@ main{min-width:0}
 .rrow{display:grid;grid-template-columns:2.6em minmax(0,1fr);gap:8px;align-items:start}
 .rch{font-weight:700;color:var(--muted);font-size:.85rem;padding-top:7px}
 .rbtns{display:flex;flex-wrap:wrap;gap:6px}
+.vid{display:flex;flex-direction:column;gap:12px}
+.vstage{background:var(--sheet);border:1px solid var(--line);border-radius:16px;padding:clamp(16px,2.5vw,28px);min-height:min(72vh,660px);display:flex;flex-direction:column;gap:14px}
+.vhead{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.vhead h2{font-family:var(--f-display);font-size:clamp(1.3rem,2.6vw,1.9rem);margin:0;text-wrap:balance}
+.vbody{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:18px;align-items:start;flex:1}
+.vbody.solo{grid-template-columns:minmax(0,1fr)}
+@media (max-width:760px){.vbody{grid-template-columns:minmax(0,1fr)}}
+.vvis{min-width:0}
+.vvis .fig{margin:0}
+.vvis .mapsvg{min-width:0}
+.vcards{display:flex;flex-direction:column;gap:10px;min-width:0}
+.vcards:empty{display:none}
+.vcard{padding:12px 14px;border-radius:10px;background:var(--paper);border-left:4px solid var(--line);font-size:clamp(1rem,1.6vw,1.15rem);line-height:1.65;opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s,background .3s,border-color .3s}
+.vcard.on{opacity:1;transform:none}
+.vcard.cur{border-left-color:var(--orange);background:var(--orange-soft)}
+.vcard b{color:var(--orange)}
+.vtitle{display:flex;flex-direction:column;gap:10px;justify-content:center;min-height:220px;padding:10px 4px}
+.vtitle .big{font-family:var(--f-display);font-size:clamp(1.8rem,4.2vw,3rem);font-weight:800;line-height:1.3;color:var(--teal);text-wrap:balance}
+.vtitle .sm{color:var(--muted);font-size:1rem}
+.vsub{min-height:3.6em;padding:12px 16px;border-radius:10px;background:var(--ink);color:var(--sheet);font-size:clamp(.98rem,1.5vw,1.1rem);line-height:1.6}
+.vctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.vctl .ic{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--sheet);color:var(--teal);display:grid;place-items:center;cursor:pointer;padding:0}
+.vctl .ic svg{width:22px;height:22px;fill:currentColor}
+.vctl .ic.play{width:58px;height:58px;background:var(--teal);border-color:var(--teal);color:var(--sheet)}
+.vprog{display:flex;gap:3px;flex:1 1 220px;min-width:0}
+.vprog button{flex:1;height:12px;border:0;border-radius:3px;background:var(--line);cursor:pointer;padding:0;min-width:0}
+.vprog button.done{background:var(--teal)}
+.vprog button.now{background:var(--orange)}
+.vtime{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.vcard{transition:none}}
 .figs{display:flex;flex-direction:column;gap:14px;margin-top:20px}
 .fig{border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:14px 16px;min-width:0}
 .fig h5{margin:0 0 10px;font-size:.85rem;letter-spacing:.08em;color:var(--teal)}
@@ -233,7 +263,7 @@ footer{margin-top:28px;font-size:.8rem;color:var(--muted);display:flex;flex-wrap
     </aside>
     <main id="main" hidden></main>
   </div>
-  <footer><span>2026/10/14 19:40 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
+  <footer><span>2026/10/14 20:00 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
 </div>
 
 <script>
@@ -478,6 +508,7 @@ const markWeak = (id,bad)=>{ if(bad){ weak[id]=(weak[id]||0)+1; } else if(weak[i
 
 // ===== サイドバー =====
 const MODES = [
+  {v:"video",t:"まとめ動画（約7分）",s:"地図・図と音声で全範囲をおさらい",n:()=>VIDEO.length+"場面"},
   {v:"mock",t:"模擬テスト（30問）",s:"括弧24問＋本文6問をランダムに。本番の練習に",n:()=>"30問"},
   {v:"blank",t:"穴埋め（括弧）",s:"プリントの（ ）から出題",n:()=>blankItems.length+"問"},
   {v:"sheet",t:"赤シート",s:"本文を読んでタップでめくる",n:()=>blankItems.length+"問"},
@@ -545,8 +576,8 @@ function showStreak(n){ const f=$(".feedback"); if(f) f.insertAdjacentHTML("befo
 const YOMI=[["平塚らいてう","ひらつからいちょう"],["らいてう","らいちょう"],["市川房枝","いちかわふさえ"],["犬養毅","いぬかいつよし"],["寺内正毅","てらうちまさたけ"],["加藤高明","かとうたかあき"],["吉野作造","よしのさくぞう"],["原敬","はらたかし"],["原内閣","はらないかく"],["桂内閣","かつらないかく"],["五・一五","ごいちご"],["三・一","さんいち"],["五・四","ごし"],["二十一カ条","にじゅういっかじょう"],["十四カ条","じゅうよんかじょう"],["英・独・米","えい、どく、べい"],["英・仏","えい、ふつ"],["蹂躙","じゅうりん"],["鼓舞","こぶ"],["管下","かんか"],["青鞜社","せいとうしゃ"],["民本主義","みんぽんしゅぎ"],["大逆","たいぎゃく"],["米穀商","べいこくしょう"],["米価","べいか"],["米騒動","こめそうどう"],["家父長的","かふちょうてき"],["小作農","こさくのう"],["革新倶楽部","かくしんくらぶ"],["護憲三派","ごけんさんぱ"],["辛亥革命","しんがいかくめい"],["在華紡","ざいかぼう"],["白話","はくわ"],["山東","さんとう"],["武断的","ぶだんてき"],["総督府","そうとくふ"],["元始","げんし"],["真正の人","しんせいのひと"],["他の光","たのひかり"],["青島","チンタオ"],["委任統治","いにんとうち"],["綱領","こうりょう"],["スワデーシ","スワデーシー"],["世俗化","せぞくか"],["一旦","いったん"],["立身出世","りっしんしゅっせ"],["高等女学校","こうとうじょがっこう"],["元老","げんろう"],["日比谷","ひびや"],["衆議院","しゅうぎいん"],["憲兵","けんぺい"],["応分","おうぶん"],["富強","ふきょう"],["糸車","いとぐるま"],["手織り","ており"],["Q","キュー"]];
 const yomi = t => YOMI.reduce((x,[k,v])=>x.split(k).join(v), t);
 let sayToken=0;
-function say(text,force){
-  if(!canSpeak || (!settings.tts && !force) || !text) return;
+function say(text,force,cb){
+  if(!canSpeak || (!settings.tts && !force) || !text){ if(cb) setTimeout(cb, canSpeak?0:Math.max(1500,String(text||"").length*130)); return; }
   try{
     speechSynthesis.cancel();
     const my=++sayToken, r=parseFloat(settings.rate)||1;
@@ -554,7 +585,7 @@ function say(text,force){
     const speakPart=i=>{
       if(my!==sayToken || i>=parts.length) return;
       const t=parts[i].replace(/[［］\[\]＝]/g,"、").replace(/（|）/g,"、");
-      const goNext=()=>{ if(i<parts.length-1) setTimeout(()=>speakPart(i+1), Math.round(700/r)); };
+      const goNext=()=>{ if(my!==sayToken) return; if(i<parts.length-1) setTimeout(()=>speakPart(i+1), Math.round(700/r)); else if(cb) cb(); };
       if(!t.replace(/[、\s]/g,"")){ goNext(); return; }
       const u=new SpeechSynthesisUtterance(t);
       u.lang="ja-JP"; if(jaVoice) u.voice=jaVoice; u.rate=r; u.pitch=1;
@@ -573,7 +604,7 @@ function spokenSentence(it){
   return it.sentence.replace(/\[\[(\d+)\]\]/g,(m,n)=> +n===it.n ? "\u0001" : getB(it.ch,+n)[1]);
 }
 let view="menu";
-function showMenu(){ hush(); view="menu"; $("header.top").hidden=false; $("footer").hidden=false; $("aside").hidden=false; $("#main").hidden=true; renderSide(); window.scrollTo(0,0); }
+function showMenu(){ vStop(); hush(); view="menu"; $("header.top").hidden=false; $("footer").hidden=false; $("aside").hidden=false; $("#main").hidden=true; renderSide(); window.scrollTo(0,0); }
 function play(mode){ settings.mode=mode; save(); view="play"; $("header.top").hidden=true; $("footer").hidden=true; $("aside").hidden=true; $("#main").hidden=false; start(); window.scrollTo(0,0); }
 document.addEventListener("click",e=>{ if(e.target.closest("[data-back]")) showMenu(); });
 const BACK='<div class="topbar"><button class="linkbtn back" data-back>← メニュー</button></div>';
@@ -639,7 +670,7 @@ const FIG_RENDER = {
 };
 function mapFig(groups){
   const hl=groups.split("+");
-  const svg=MAP_SVG.replace(/class="pt" data-k="(\w+)" data-g="(\w+)"/g,(m,k,g)=>hl.includes(g)?`class="pt hl" data-k="${k}" data-g="${g}"`:m);
+  const svg=MAP_SVG.replace(/class="pt" data-k="(\w+)" data-g="(\w+)"/g,(m,k,g)=>(hl.includes(g)||hl.includes(k))?`class="pt hl" data-k="${k}" data-g="${g}"`:m);
   return `<div class="fig"><h5>地図で確認</h5><div class="mapwrap">${svg}</div><p class="cap">オレンジの点がこの範囲に関係する場所です（国境線は省略）。</p></div>`;
 }
 const SECFIG = {"5a":["map:east"],"5b":["map:india"],"5c":["map:west"],"6a":["suffrage_world"],"6b":["tl_japan"],"6c":["tl_japan"]};
@@ -663,6 +694,138 @@ function renderFigs(){
   $("#main").innerHTML = BACK+`<div class="card"><p class="note" style="margin-top:0">テスト範囲の場所・年代・しくみを図でまとめました。</p>${figHtml(["map:east+india+west","tl_asia","me3","suffrage_world","electorate","tl_japan"])}</div>`;
 }
 
+// ===== まとめ動画 =====
+const VIDEO = [
+ {c:"はじめに",t:"中間テストまとめ",v:"title:歴史総合 中間テスト|5. アジアのナショナリズム ／ 6. 大衆の政治参加",s:[
+  ["これから、中間テストの範囲を、約7分でまとめて復習します。",""],
+  ["前半はアジアのナショナリズム、後半は大衆の政治参加です。","前半：**アジアのナショナリズム**／後半：**大衆の政治参加**"],
+  ["オレンジ色の言葉は、プリントの括弧に入る重要語句です。","オレンジ＝**括弧に入る重要語句**"]]},
+ {c:"5章 朝鮮",t:"朝鮮：三・一独立運動",v:"map:korea+tokyo",s:[
+  ["1910年の韓国併合で、日本は朝鮮総督府を置き、朝鮮を植民地として支配しました。","1910 韓国併合 → **朝鮮総督府**"],
+  ["1919年3月1日、ウィルソン大統領の民族自決の考えに影響を受けて、独立の宣言が出されます。これが三・一独立運動です。","**民族自決** → **三・一独立運動**（1919.3.1）"],
+  ["総督府は運動を鎮圧しましたが、その後は武断的な統治をゆるめ、文化政治に切りかえました。","武断的な統治 → **文化政治**"]]},
+ {c:"5章 中国",t:"中国：新文化運動",v:"map:beijing+shanghai",s:[
+  ["辛亥革命のあとの中国では、儒学を批判して、女性の権利を主張する動きが出てきます。","**辛亥革命**後：儒学を批判／**女性**の権利"],
+  ["話し言葉に近い白話で書こうとする運動、新文化運動、つまり文学革命です。","**白話** → **新文化運動**（文学革命）"]]},
+ {c:"5章 中国",t:"中国：五・四運動",v:"map:shandong+beijing",s:[
+  ["第一次世界大戦の戦勝国となった中国は、二十一カ条の要求で結ばれた条約の無効と、山東の権益の返還を求めました。","**戦勝国**として **山東** 権益の返還を要求"],
+  ["しかし認められそうになかったため、1919年、北京の学生たちが五・四運動をおこします。","1919 **五・四運動**（北京の学生）"],
+  ["その後、孫文が中国国民党を、ロシア革命の影響を受けた知識人が中国共産党をつくりました。","**孫文** → 中国国民党／**中国共産党**"]]},
+ {c:"5章 中国",t:"中国：上海の紡績業",v:"map:shanghai",s:[
+  ["上海では紡績業がさかんになり、日本資本の工場、在華紡もつくられました。","上海：**紡績業**／**在華紡**"],
+  ["1920年代後半には、機械製の綿糸の輸出が、輸入を上まわるまでになりました。","機械製 **綿糸** の輸出 ＞ 輸入"]]},
+ {c:"5章 比べる",t:"朝鮮と中国のちがい",v:"map:korea+beijing+shandong",s:[
+  ["ここで比べてみましょう。朝鮮のナショナリズムは、日本の植民地支配からの独立をめざすものでした。","朝鮮：植民地支配からの**独立**をめざす"],
+  ["中国は、戦勝国なのに旧ドイツの権益が日本にわたったことに反発し、強い態度の外交を求めました。","中国：**戦勝国**なのに権益が日本へ → 強い外交を要求"]]},
+ {c:"5章 インド",t:"インド：民族資本と国民会議",v:"map:india",s:[
+  ["インドでは、アメリカの南北戦争で綿花の需要が高まり、もうけたインドの民族資本が紡績業をおこしました。","南北戦争 → **綿花** の需要 → **民族資本**"],
+  ["1885年には、イギリスによってインド国民会議が開かれます。","1885 **インド国民会議**"]]},
+ {c:"5章 インド",t:"インド：ベンガル分割令と四大綱領",v:"map:calcutta",s:[
+  ["1905年、イギリスがベンガル分割令を出すと、国民会議派は反英へと変わりました。","1905 **ベンガル分割令** → **国民会議派** が反英に"],
+  ["翌年のカルカッタ大会で、英貨排斥、スワデーシ、スワラージ、民族教育をかかげます。","**カルカッタ大会四大綱領**：**英貨**排斥・スワデーシ・**スワラージ**・民族教育"],
+  ["これに対しイギリスは、親英的な全インド＝ムスリム連盟の結成を支援しました。","イギリスは **全インド＝ムスリム連盟** を支援"]]},
+ {c:"5章 インド",t:"インド：ガンディーとネルー",v:"map:india",s:[
+  ["1919年、イギリスはローラット法で民族運動をおさえようとします。","1919 **ローラット法**"],
+  ["これに対してガンディーは非暴力・不服従運動をよびかけ、ネルーは完全独立を主張しました。","ガンディー：**非暴力・不服従**／**ネルー**：完全独立"],
+  ["糸車をまわすガンディーの姿は、国産品を使うスワデーシと、伝統産業の復興を表しています。","糸車 ＝ スワデーシ（国産品愛用）"]]},
+ {c:"5章 西アジア",t:"イギリスの3つの約束",v:"fig:me3",s:[
+  ["西アジアでは、イギリスが第一次世界大戦中に、食いちがう3つの約束をしました。",""],
+  ["アラブ人には独立を約束した、フセイン・マクマホン協定。","1915 フセイン・マクマホン協定（アラブ人）"],
+  ["フランスなどと中東の分割を決めた、秘密のサイクス・ピコ協定。","1916 サイクス・ピコ協定（秘密）"],
+  ["ユダヤ人にパレスチナでの民族的郷土を認めた、バルフォア宣言です。","1917 バルフォア宣言（ユダヤ人）"]]},
+ {c:"5章 西アジア",t:"アラブとエジプト",v:"map:baghdad+cairo+suez+jerusalem",s:[
+  ["戦後、アラブの地域はイギリスとフランスの委任統治領となり、反発したアラブ人はイラク王国などを成立させました。","**委任統治領** に反発 → イラク王国"],
+  ["エジプトでは、ワフド党を中心に独立運動がおこり、1922年にエジプト王国が成立します。","**ワフド党** → 1922 **エジプト王国**"],
+  ["ただし、スエズ運河はイギリスがおさえたままでした。","**スエズ** 運河はイギリスの管下"]]},
+ {c:"5章 西アジア",t:"トルコとイラン",v:"map:ankara+istanbul+tehran",s:[
+  ["敗戦国のオスマン帝国は、セーヴル条約で領土を分割される危機におちいります。","**セーヴル** 条約で分割の危機"],
+  ["ケマルがアンカラに政権をたて、1922年にスルタン制を廃止。1923年にトルコ共和国が成立しました。","**ケマル**：**スルタン** 制廃止 → 1923 **トルコ共和国**"],
+  ["ケマルは、西欧化と教育によるトルコ民族主義の強化をすすめます。","**トルコ民族主義** の強化"],
+  ["イランでは、ガージャール朝にかわり、レザー＝シャーがパフレヴィー朝を開きました。","**ガージャール** 朝 → **パフレヴィー** 朝"]]},
+ {c:"5章 年表",t:"年表でふりかえり",v:"fig:tl_asia",s:[
+  ["ここまでを年表で確認しましょう。","",],
+  ["1919年は、三・一独立運動、五・四運動、ローラット法が重なる、大事な年です。","**1919年**：三・一独立運動／五・四運動／ローラット法"]]},
+ {c:"6章 欧米",t:"欧米の参政権の拡大",v:"fig:suffrage_world",s:[
+  ["後半は、大衆の政治参加です。欧米では、工業化とともに労働運動や社会主義運動が活発になり、男性普通選挙が広がりました。","労働運動・**社会主義** 運動 → **男性普通選挙**"],
+  ["第一次世界大戦は、国民全体を動員する総力戦でした。","**総力戦**"],
+  ["男性にかわって女性が軍需産業で働いたことで、女性参政権が実現し、性別を問わない普通選挙が広がります。","**女性参政権** → **普通選挙**"]]},
+ {c:"6章 日本",t:"日本：大衆が動き出す",v:"fig:tl_japan",s:[
+  ["日本では、義務教育の普及や徴兵制を背景に、大衆が政治に声をあげはじめます。","**義務教育**・**徴兵** 制"],
+  ["日露戦争で賠償金がとれなかった不満から、日比谷焼き打ち事件がおこりました。","**賠償金** なし → **日比谷焼き打ち** 事件"],
+  ["さらに憲政擁護運動で内閣が倒れる、大正政変がおこります。","**憲政擁護** 運動 → **大正政変**"]]},
+ {c:"6章 日本",t:"日本：民本主義と米騒動",v:"fig:tl_japan",s:[
+  ["政治学者の吉野作造は、民衆のための政治、民本主義をとなえ、議会中心の政治を訴えました。","**吉野作造**：**民本主義**（**議会** 中心）"],
+  ["1918年、富山県の女性たちの運動をきっかけに、米騒動が全国に広がり、寺内内閣は退陣します。","1918 **富山県** → **米騒動** → **寺内正毅** 内閣退陣"],
+  ["かわって、立憲政友会の原敬が、衆議院議員としてはじめて首相になりました。","**原敬**：衆議院議員初の首相"]]},
+ {c:"6章 日本",t:"日本：男性普通選挙へ",v:"fig:electorate",s:[
+  ["こうした民主主義を求める流れを、大正デモクラシーと呼びます。","**大正デモクラシー**"],
+  ["原内閣は選挙資格を直接国税3円以上に引き下げ、1924年に護憲三派の加藤高明内閣が、男性普通選挙を実現させました。","直接国税3円以上 → **加藤高明** 内閣で男性普通選挙"],
+  ["その後、五・一五事件で犬養毅内閣が倒れるまで、立憲政友会と憲政会の二大政党が交代で政権を担当しました。","**五・一五** 事件まで、政友会と **憲政会** の二大政党"]]},
+ {c:"6章 社会運動",t:"労働運動と社会主義",v:"fig:tl_japan",s:[
+  ["社会運動もさかんになります。大逆事件のあと低迷していた運動は、第一次世界大戦中の工業化と、ロシア革命の影響で、ふたたび活発になりました。","**大逆** 事件 → 低迷 → **工業化**・**ロシア革命** で **労働運動** が活発に"],
+  ["1922年には日本共産党がひそかに結成され、政府は1925年、治安維持法で取りしまりました。","**日本共産党** ／ 1925 **治安維持法**"]]},
+ {c:"6章 社会運動",t:"女性運動と部落解放運動",v:"title:元始、女性は実に太陽であった|平塚らいてう（青鞜社）",s:[
+  ["平塚らいてうは青鞜社をつくり、元始、女性は実に太陽であった、とよびかけました。","平塚らいてう：**青鞜社**"],
+  ["さらに市川房枝らと新婦人協会をつくり、治安警察法の改正を実現します。ただし、女性の参政権は1945年まで実現しませんでした。","**新婦人協会** → **治安警察** 法の改正／女性参政権は **1945** 年"],
+  ["1922年には全国水平社がつくられ、被差別部落の人々の解放をめざす、部落解放運動が始まりました。","**全国水平社** → **被差別部落** の解放（**部落解放** 運動）"]]},
+ {c:"おわりに",t:"まちがえやすいポイント",v:"title:最後に確認！|ここがテストでねらわれやすい",s:[
+  ["最後に、まちがえやすいポイントです。五・四運動は中国、三・一独立運動は朝鮮。","**五・四運動**＝中国／**三・一独立運動**＝朝鮮"],
+  ["スワデーシは国産品愛用、スワラージは自治や独立のことです。","スワデーシ＝国産品愛用／**スワラージ**＝自治"],
+  ["ガージャール朝の次がパフレヴィー朝。原敬の前が寺内内閣です。","**ガージャール** → **パフレヴィー**／寺内 → **原敬**"],
+  ["以上でまとめは終わりです。テスト、がんばってください！","**がんばって！**"]]}
+];
+const ICON={play:'<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>',pause:'<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></svg>',prev:'<svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6L18 18V6z"/></svg>',next:'<svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>'};
+let V={i:0,k:-1,playing:false,tok:0,wl:null};
+const mdB = t => t.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+function vVisual(v){
+  if(v.startsWith("map:")) return mapFig(v.slice(4));
+  if(v.startsWith("fig:")) return FIG_RENDER[v.slice(4)]();
+  const [a,b]=v.slice(6).split("|");
+  return `<div class="vtitle"><span class="big">${a}</span><span class="sm">${b||""}</span></div>`;
+}
+function renderVideo(){
+  V.tok++; V.playing=false; V.k=-1;
+  $("#main").innerHTML = BACK+`<div class="vid"><div class="vstage" id="vstage"></div>
+  <div class="vctl"><button class="ic" id="vprev" aria-label="前の場面">${ICON.prev}</button><button class="ic play" id="vplay" aria-label="再生">${ICON.play}</button><button class="ic" id="vnext" aria-label="次の場面">${ICON.next}</button>
+  <div class="vprog" id="vprog">${VIDEO.map((s,i)=>`<button data-i="${i}" aria-label="${i+1}. ${s.t}"></button>`).join("")}</div><span class="vtime" id="vnum"></span></div>
+  <p class="note" style="margin:0">▶で再生。スペースキーで一時停止、←→で場面を移動できます。速さはメニューの「読み上げの速さ」で変えられます。</p></div>`;
+  $("#vplay").onclick=()=>V.playing?vPause():vPlay();
+  $("#vprev").onclick=()=>vGo(V.i-1,true);
+  $("#vnext").onclick=()=>vGo(V.i+1,true);
+  $("#vprog").querySelectorAll("button").forEach(b=>b.onclick=()=>vGo(+b.dataset.i,true));
+  vDraw();
+}
+function vDraw(){
+  const s=VIDEO[V.i]; const cards=s.s.filter(x=>x[1]);
+  const solo = s.v.startsWith("title:") && !cards.length;
+  $("#vstage").innerHTML = `<div class="vhead"><span class="chip">${s.c}</span><h2>${s.t}</h2></div>
+   <div class="vbody${solo?" solo":""}"><div class="vvis">${vVisual(s.v)}</div><div class="vcards">${s.s.map((x,k)=>x[1]?`<div class="vcard" data-k="${k}">${mdB(x[1])}</div>`:"").join("")}</div></div>
+   <div class="vsub" id="vsub">${V.playing?"":"▶ を押すと始まります"}</div>`;
+  vMark();
+  $("#vprog").querySelectorAll("button").forEach((b,i)=>{b.className=i<V.i?"done":i===V.i?"now":"";});
+  $("#vnum").textContent=`${V.i+1} / ${VIDEO.length}`;
+  $("#vplay").innerHTML=V.playing?ICON.pause:ICON.play; $("#vplay").setAttribute("aria-label",V.playing?"一時停止":"再生");
+}
+function vMark(){
+  document.querySelectorAll(".vcard").forEach(c=>{const k=+c.dataset.k; c.classList.toggle("on",k<=V.k); c.classList.toggle("cur",k===V.k);});
+}
+function vSeg(k){
+  const s=VIDEO[V.i]; const my=++V.tok;
+  if(k>=s.s.length){ setTimeout(()=>{ if(my!==V.tok||!V.playing) return; if(V.i<VIDEO.length-1){ V.i++; V.k=-1; vDraw(); vSeg(0);} else { V.playing=false; vDraw(); $("#vsub").textContent="おしまい。おつかれさまでした！"; sfx("fanfare"); confetti(); } }, Math.round(900/(parseFloat(settings.rate)||1))); return; }
+  V.k=k; vMark(); $("#vsub").textContent=s.s[k][0];
+  let done=false; const fin=()=>{ if(done||my!==V.tok||!V.playing) return; done=true; setTimeout(()=>{ if(my===V.tok&&V.playing) vSeg(k+1); }, Math.round(450/(parseFloat(settings.rate)||1))); };
+  say(s.s[k][0],true,fin);
+  setTimeout(fin, Math.round((s.s[k][0].length*260+4000)/(parseFloat(settings.rate)||1)));
+}
+async function vPlay(){
+  V.playing=true; vDraw();
+  try{ if(navigator.wakeLock&&!V.wl) V.wl=await navigator.wakeLock.request("screen"); }catch(e){}
+  vSeg(V.k<0?0:V.k);
+}
+function vPause(){ V.playing=false; V.tok++; hush(); vDraw(); $("#vsub").textContent="一時停止中（▶で続きから）"; }
+function vGo(i,keep){ if(i<0||i>=VIDEO.length) return; const was=V.playing; V.tok++; hush(); V.i=i; V.k=-1; V.playing=was; vDraw(); if(was) vSeg(0); }
+function vStop(){ V.tok++; V.playing=false; try{ V.wl&&V.wl.release(); }catch(e){} V.wl=null; }
+
 // ===== 出題 =====
 const inRange = it => settings.range==="all" || String(it.ch)===settings.range || it.sec===settings.range;
 const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
@@ -671,6 +834,7 @@ let Q = {list:[],i:0,score:0,miss:[],answered:false,retry:false};
 function start(list){
   if(settings.mode==="sheet") return renderSheet();
   if(settings.mode==="figs") return renderFigs();
+  if(settings.mode==="video") return renderVideo();
   let pool;
   if(settings.mode==="mock"){
     pool = list || shuffle([...shuffle(blankItems.filter(inRange)).slice(0,24), ...shuffle(textItems.filter(inRange)).slice(0,6)]);
@@ -844,6 +1008,11 @@ function renderSheet(){
 document.addEventListener("keydown",e=>{
   if(view!=="play") return;
   if(e.key==="Escape"){ showMenu(); return; }
+  if(settings.mode==="video"){
+    if(e.key===" "){ e.preventDefault(); V.playing?vPause():vPlay(); }
+    else if(e.key==="ArrowRight") vGo(V.i+1); else if(e.key==="ArrowLeft") vGo(V.i-1);
+    return;
+  }
   if(settings.mode==="sheet"||settings.mode==="figs") return;
   const tag=(e.target.tagName||"");
   if(/^[1-4]$/.test(e.key) && tag!=="INPUT" && !Q.answered){
