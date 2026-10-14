@@ -140,6 +140,13 @@ main{min-width:0}
 .rank.rS,.rank.rA{border-color:var(--orange);color:var(--orange)}
 .confetti{position:fixed;top:-16px;width:10px;height:14px;border-radius:2px;pointer-events:none;z-index:50}
 @media (prefers-reduced-motion:reduce){.streak,.rank,.feedback.ok strong{animation:none}}
+.rangebox{display:flex;flex-direction:column;gap:8px}
+.rangebox button{font:inherit;font-size:.88rem;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.rangebox button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:var(--sheet);font-weight:700}
+.rangebox button:hover:not([aria-pressed="true"]){border-color:var(--teal)}
+.rrow{display:grid;grid-template-columns:2.6em minmax(0,1fr);gap:8px;align-items:start}
+.rch{font-weight:700;color:var(--muted);font-size:.85rem;padding-top:7px}
+.rbtns{display:flex;flex-wrap:wrap;gap:6px}
 .figs{display:flex;flex-direction:column;gap:14px;margin-top:20px}
 .fig{border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:14px 16px;min-width:0}
 .fig h5{margin:0 0 10px;font-size:.85rem;letter-spacing:.08em;color:var(--teal)}
@@ -199,7 +206,7 @@ footer{margin-top:28px;font-size:.8rem;color:var(--muted);display:flex;flex-wrap
     <aside>
       <div class="group">
         <span class="label">範囲</span>
-        <select id="range" aria-label="範囲"></select>
+        <div class="rangebox" id="range" role="group" aria-label="範囲"></div>
       </div>
       <div class="group" id="methodGroup">
         <span class="label">答え方（穴埋め・本文から）</span>
@@ -226,7 +233,7 @@ footer{margin-top:28px;font-size:.8rem;color:var(--muted);display:flex;flex-wrap
     </aside>
     <main id="main" hidden></main>
   </div>
-  <footer><span>2026/10/14 19:30 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
+  <footer><span>2026/10/14 19:40 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
 </div>
 
 <script>
@@ -482,8 +489,10 @@ const $ = s=>document.querySelector(s);
 function renderSide(){
   $("#modes").innerHTML = MODES.map(m=>`<button data-v="${m.v}" aria-pressed="${settings.mode===m.v}"><span>${m.t}<small>${m.s}</small></span><span class="n">${m.n()}</span></button>`).join("");
   $("#modes").querySelectorAll("button").forEach(b=>b.onclick=()=>play(b.dataset.v));
-  const opts = [["all","全範囲"],["5","5. アジアのナショナリズム（全部）"],...SECS.filter(s=>s.ch===5).map(s=>[s.id,"　"+s.name]),["6","6. 大衆の政治参加（全部）"],...SECS.filter(s=>s.ch===6).map(s=>[s.id,"　"+s.name])];
-  $("#range").innerHTML = opts.map(o=>`<option value="${o[0]}" ${settings.range===o[0]?"selected":""}>${o[1]}</option>`).join("");
+  const SHORT={"5a":"朝鮮・中国","5b":"インド","5c":"西アジア","6a":"欧米の参政権","6b":"日本の大衆政治","6c":"日本の社会運動"};
+  const rb=(v,t)=>`<button data-v="${v}" aria-pressed="${settings.range===v}">${t}</button>`;
+  $("#range").innerHTML = `<div class="rbtns">${rb("all","全範囲")}</div>`+[5,6].map(ch=>`<div class="rrow"><span class="rch">${ch}章</span><div class="rbtns">${rb(String(ch),"ぜんぶ")}${SECS.filter(s=>s.ch===ch).map(s=>rb(s.id,SHORT[s.id])).join("")}</div></div>`).join("");
+  $("#range").querySelectorAll("button").forEach(b=>b.onclick=()=>{settings.range=b.dataset.v;save();renderSide();});
   ["method","order","rate"].forEach(k=>$("#"+k).querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",settings[k]===b.dataset.v)));
   $("#weakOnly").checked = settings.weakOnly;
   $("#tts").checked = settings.tts;
@@ -491,7 +500,6 @@ function renderSide(){
   const wc = Object.keys(weak).length;
   $("#weakCount").textContent = `苦手に登録：${wc}問`;
 }
-$("#range").onchange=e=>{settings.range=e.target.value;save();};
 ["method","order","rate"].forEach(k=>$("#"+k).querySelectorAll("button").forEach(b=>b.onclick=()=>{settings[k]=b.dataset.v;save();renderSide();if(k==="rate")say("この速さで読み上げます",true);}));
 $("#weakOnly").onchange=e=>{settings.weakOnly=e.target.checked;save();};
 $("#tts").onchange=e=>{settings.tts=e.target.checked;save();};
