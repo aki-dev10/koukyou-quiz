@@ -217,7 +217,7 @@ footer{margin-top:28px;font-size:.8rem;color:var(--muted);display:flex;flex-wrap
     </aside>
     <main id="main" hidden></main>
   </div>
-  <footer><span>2026/10/14 08:40 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
+  <footer><span>2026/10/14 19:20 版</span><span>Q番号の資料（③、⑤など）は授業プリント・資料集を見てください</span></footer>
 </div>
 
 <script>
@@ -447,6 +447,7 @@ const textItems = T.map((t,i)=>({id:"t"+i,ch:+t[0][0],sec:t[0],q:t[1],a:t[2],d:t
 const essayItems = E.map((e,i)=>({id:`e${e[0][0]}-${e[1]}`,ch:+e[0][0],sec:e[0],label:e[1],q:e[2],a:e[3],flag:!!e[4]}));
 
 const getB = (ch,n)=>B[ch][n];
+const isB = it => it.id[0]==="b";
 const norm = s => (s||"").normalize("NFKC").replace(/[\s・･=＝\-‐ー－（）()「」、,.。年]/g,"").replace(/[ァ-ン]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60)).toLowerCase();
 // ※ ー も除去するので「スワラージ」「スワラジ」は同じ扱い
 
@@ -461,6 +462,7 @@ const markWeak = (id,bad)=>{ if(bad){ weak[id]=(weak[id]||0)+1; } else if(weak[i
 
 // ===== サイドバー =====
 const MODES = [
+  {v:"mock",t:"模擬テスト（30問）",s:"括弧24問＋本文6問をランダムに。本番の練習に",n:()=>"30問"},
   {v:"blank",t:"穴埋め（括弧）",s:"プリントの（ ）から出題",n:()=>blankItems.length+"問"},
   {v:"sheet",t:"赤シート",s:"本文を読んでタップでめくる",n:()=>blankItems.length+"問"},
   {v:"text",t:"本文から",s:"年号・人物などの一問一答",n:()=>textItems.length+"問"},
@@ -494,13 +496,15 @@ function pickVoice(){
   }catch(e){}
 }
 if(canSpeak){ pickVoice(); try{ speechSynthesis.onvoiceschanged=pickVoice; }catch(e){} }
+const YOMI=[["平塚らいてう","ひらつからいちょう"],["らいてう","らいちょう"],["市川房枝","いちかわふさえ"],["犬養毅","いぬかいつよし"],["寺内正毅","てらうちまさたけ"],["加藤高明","かとうたかあき"],["吉野作造","よしのさくぞう"],["原敬","はらたかし"],["原内閣","はらないかく"],["桂内閣","かつらないかく"],["五・一五","ごいちご"],["三・一","さんいち"],["五・四","ごし"],["二十一カ条","にじゅういっかじょう"],["十四カ条","じゅうよんかじょう"],["英・独・米","えい、どく、べい"],["英・仏","えい、ふつ"],["蹂躙","じゅうりん"],["鼓舞","こぶ"],["管下","かんか"],["青鞜社","せいとうしゃ"],["民本主義","みんぽんしゅぎ"],["大逆","たいぎゃく"],["米穀商","べいこくしょう"],["米価","べいか"],["米騒動","こめそうどう"],["家父長的","かふちょうてき"],["小作農","こさくのう"],["革新倶楽部","かくしんくらぶ"],["護憲三派","ごけんさんぱ"],["辛亥革命","しんがいかくめい"],["在華紡","ざいかぼう"],["白話","はくわ"],["山東","さんとう"],["武断的","ぶだんてき"],["総督府","そうとくふ"],["元始","げんし"],["真正の人","しんせいのひと"],["他の光","たのひかり"],["青島","チンタオ"],["委任統治","いにんとうち"],["綱領","こうりょう"],["スワデーシ","スワデーシー"],["世俗化","せぞくか"],["一旦","いったん"],["立身出世","りっしんしゅっせ"],["高等女学校","こうとうじょがっこう"],["元老","げんろう"],["日比谷","ひびや"],["衆議院","しゅうぎいん"],["憲兵","けんぺい"],["応分","おうぶん"],["富強","ふきょう"],["糸車","いとぐるま"],["手織り","ており"],["Q","キュー"]];
+const yomi = t => YOMI.reduce((x,[k,v])=>x.split(k).join(v), t);
 let sayToken=0;
 function say(text,force){
   if(!canSpeak || (!settings.tts && !force) || !text) return;
   try{
     speechSynthesis.cancel();
     const my=++sayToken, r=parseFloat(settings.rate)||1;
-    const parts=String(text).split("\u0001");
+    const parts=yomi(String(text)).split("\u0001");
     const speakPart=i=>{
       if(my!==sayToken || i>=parts.length) return;
       const t=parts[i].replace(/[［］\[\]＝]/g,"、").replace(/（|）/g,"、");
@@ -601,7 +605,7 @@ const FIGMAP = {
 };
 function figsFor(it){
   if(FIGMAP[it.id]) return FIGMAP[it.id];
-  if(settings.mode==="text" && /何年/.test(it.q)) return [it.ch===5?"tl_asia":"tl_japan"];
+  if(it.id[0]==="t" && /何年/.test(it.q)) return [it.ch===5?"tl_asia":"tl_japan"];
   return SECFIG[it.sec]||[];
 }
 function figHtml(keys){
@@ -621,10 +625,15 @@ let Q = {list:[],i:0,score:0,miss:[],answered:false,retry:false};
 function start(list){
   if(settings.mode==="sheet") return renderSheet();
   if(settings.mode==="figs") return renderFigs();
-  let pool = settings.mode==="blank"?blankItems:settings.mode==="text"?textItems:essayItems;
-  pool = list || pool.filter(inRange).filter(it=>!settings.weakOnly||weak[it.id]);
-  if(!list && settings.order==="rand") pool = shuffle(pool);
-  Q = {list:pool,i:0,score:0,miss:[],answered:false};
+  let pool;
+  if(settings.mode==="mock"){
+    pool = list || shuffle([...shuffle(blankItems.filter(inRange)).slice(0,24), ...shuffle(textItems.filter(inRange)).slice(0,6)]);
+  } else {
+    pool = settings.mode==="blank"?blankItems:settings.mode==="text"?textItems:essayItems;
+    pool = list || pool.filter(inRange).filter(it=>!settings.weakOnly||weak[it.id]);
+    if(!list && settings.order==="rand") pool = shuffle(pool);
+  }
+  Q = {list:pool,i:0,score:0,miss:[],answered:false,t0:Date.now()};
   if(!pool.length){
     $("#main").innerHTML = BACK+`<div class="card"><p class="question">${settings.weakOnly?"この範囲に苦手な問題はありません。":"この範囲には問題がありません。"}</p><p class="note">${settings.weakOnly?"間違えた問題が自動で苦手に登録されます。「苦手だけ出題する」を外して解いてみましょう。":""}</p></div>`;
     return;
@@ -665,14 +674,14 @@ function renderQ(){
   const m = settings.mode;
   if(m==="essay") return renderEssay(it);
   let correct, qHtml, alts=[], reading="", choices;
-  if(m==="blank"){
+  if(isB(it)){
     const b=getB(it.ch,it.n); correct=b[0]; reading=b[1]; alts=b[3]||[];
     qHtml = `<p class="sentence">${sentenceHtml(it)}</p>`;
     choices = makeChoices(correct,b[2],b[4],it.ch);
   } else {
     correct=it.a; qHtml=`<p class="question">${it.q}</p>`; choices = shuffle([it.a,...it.d]);
   }
-  const chipExtra = m==="blank"?`<span class="chip">（${it.n}）</span>`:"";
+  const chipExtra = isB(it)?`<span class="chip">（${it.n}）</span>`:"";
   let body = BACK+`<div class="card">${metaHtml(it,chipExtra)}${qHtml}`;
   if(settings.method==="choice"){
     body += `<div class="choices">${choices.map((c,i)=>`<button class="choice" data-c="${c}"><span class="k">${i+1}</span><span>${c}</span></button>`).join("")}</div>`;
@@ -681,7 +690,7 @@ function renderQ(){
   }
   body += `<div id="fb"></div></div>`;
   $("#main").innerHTML = body;
-  lastSpeech = m==="blank" ? spokenSentence(it) : it.q;
+  lastSpeech = isB(it) ? spokenSentence(it) : it.q;
   say(lastSpeech);
   if(settings.method==="choice"){
     document.querySelectorAll(".choice").forEach(btn=>btn.onclick=()=>judgeChoice(btn,correct,it));
@@ -709,9 +718,9 @@ function judgeInput(v,correct,alts,reading,it){
 function finish(res,correct,it,typed){
   if(res==="ok") Q.score++; else Q.miss.push(it);
   markWeak(it.id,res!=="ok");
-  if(settings.mode==="blank"){ const s=$(".sentence"); if(s) s.innerHTML=sentenceHtml(it,res==="ok"?"ok":"ng"); }
-  let reading = settings.mode==="blank" ? getB(it.ch,it.n)[1] : "";
-  const alts = settings.mode==="blank" ? (getB(it.ch,it.n)[3]||[]) : [];
+  if(isB(it)){ const s=$(".sentence"); if(s) s.innerHTML=sentenceHtml(it,res==="ok"?"ok":"ng"); }
+  let reading = isB(it) ? getB(it.ch,it.n)[1] : "";
+  const alts = isB(it) ? (getB(it.ch,it.n)[3]||[]) : [];
   const msg = res==="ok"?"正解！":res==="kana"?"読みは正解。テストでは漢字で書けるようにしよう":"不正解";
   const cls = res==="ok"?"ok":res==="kana"?"mid":"ng";
   const showRd = reading && !/^[ぁ-ん]+$/.test(correct) && !/^[ァ-ンヴー＝・]+$/.test(correct) && !/^\d+$/.test(correct);
@@ -719,7 +728,7 @@ function finish(res,correct,it,typed){
   <div class="actions"><button class="btn" id="next">次へ</button>${res!=="ok"&&typed?'<button class="btn ghost small" id="override">合っていたので正解にする</button>':''}<span class="kbd">Enter で次へ</span></div>`;
   $("#fb").insertAdjacentHTML("beforeend", figHtml(figsFor(it)));
   $("#next").onclick=next; $("#next").focus();
-  const spokenAns = (settings.mode==="blank" ? getB(it.ch,it.n)[1] : correct);
+  const spokenAns = (isB(it) ? getB(it.ch,it.n)[1] : correct);
   say(res==="ok" ? "正解。"+spokenAns : "正解は、"+spokenAns);
   const ov=$("#override"); if(ov) ov.onclick=()=>{ Q.score++; Q.miss.pop(); markWeak(it.id,false); markWeak(it.id,false); ov.remove(); $(".feedback").className="feedback ok"; $(".feedback strong").textContent="正解にしました"; };
 }
@@ -750,11 +759,11 @@ function renderResult(){
   const total=Q.list.length, pct=Math.round(Q.score/total*100);
   const msg = pct===100?"全問正解！テスト本番もこの調子で。":pct>=80?"よくできています。間違えたところだけもう一度。":pct>=50?"あと少し。間違えた問題を繰り返そう。":"まずは赤シートで本文を読み直してから再挑戦しよう。";
   const missHtml = Q.miss.map(it=>{
-    if(settings.mode==="blank"){ const b=getB(it.ch,it.n); return `<li><b>${b[0]}</b><span class="s">${it.ch}章（${it.n}） ${it.sentence.replace(/\[\[(\d+)\]\]/g,(m,n)=>+n===it.n?"（　　）":getB(it.ch,+n)[0]).slice(0,70)}…</span></li>`; }
-    if(settings.mode==="text") return `<li><b>${it.a}</b><span class="s">${it.q}</span></li>`;
+    if(isB(it)){ const b=getB(it.ch,it.n); return `<li><b>${b[0]}</b><span class="s">${it.ch}章（${it.n}） ${it.sentence.replace(/\[\[(\d+)\]\]/g,(m,n)=>+n===it.n?"（　　）":getB(it.ch,+n)[0]).slice(0,70)}…</span></li>`; }
+    if(it.id[0]==="t") return `<li><b>${it.a}</b><span class="s">${it.q}</span></li>`;
     return `<li><b>${it.ch}章 ${it.label}</b><span class="s">${it.q}</span></li>`;
   }).join("");
-  $("#main").innerHTML = BACK+`<div class="card result"><h2>結果</h2><div class="score">${Q.score}<span> / ${total}問（${pct}%）</span></div><p>${msg}</p>
+  $("#main").innerHTML = BACK+`<div class="card result"><h2>${settings.mode==="mock"?"模擬テストの結果":"結果"}</h2><div class="score">${settings.mode==="mock"?`${pct}<span> 点（${Q.score} / ${total}問）</span>`:`${Q.score}<span> / ${total}問（${pct}%）</span>`}</div><p class="note">かかった時間：${Math.floor((Date.now()-Q.t0)/60000)}分${Math.round((Date.now()-Q.t0)/1000)%60}秒</p><p>${msg}</p>
   <div class="actions">${Q.miss.length?'<button class="btn" id="retry">間違えた問題だけもう一度</button>':''}<button class="btn ghost" id="again">最初からもう一度</button><button class="btn ghost" data-back>メニューへ</button></div>
   ${Q.miss.length?`<ul class="misslist">${missHtml}</ul>`:""}</div>`;
   const r=$("#retry"); if(r) r.onclick=()=>start(Q.miss.slice());
